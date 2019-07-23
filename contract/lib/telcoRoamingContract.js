@@ -68,12 +68,12 @@ class TelcoRoamingContract extends Contract {
         subscriberSims.push(sim6);
 
         //add the SubscriberSims to the world state 
-        await ctx.stub.putState(sim1.publickey, Buffer.from(JSON.stringify(sim1)));
-        await ctx.stub.putState(sim2.publickey, Buffer.from(JSON.stringify(sim2)));
-        await ctx.stub.putState(sim3.publickey, Buffer.from(JSON.stringify(sim3)));
-        await ctx.stub.putState(sim4.publickey, Buffer.from(JSON.stringify(sim4)));
-        await ctx.stub.putState(sim5.publickey, Buffer.from(JSON.stringify(sim5)));
-        await ctx.stub.putState(sim6.publickey, Buffer.from(JSON.stringify(sim6)));
+        await ctx.stub.putState(sim1.publicKey, Buffer.from(JSON.stringify(sim1)));
+        await ctx.stub.putState(sim2.publicKey, Buffer.from(JSON.stringify(sim2)));
+        await ctx.stub.putState(sim3.publicKey, Buffer.from(JSON.stringify(sim3)));
+        await ctx.stub.putState(sim4.publicKey, Buffer.from(JSON.stringify(sim4)));
+        await ctx.stub.putState(sim5.publicKey, Buffer.from(JSON.stringify(sim5)));
+        await ctx.stub.putState(sim6.publicKey, Buffer.from(JSON.stringify(sim6)));
 
         console.log("CSPs and Subscriber sims have been instantiated");
     }
