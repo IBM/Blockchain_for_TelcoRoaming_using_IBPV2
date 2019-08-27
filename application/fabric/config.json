@@ -1,0 +1,11 @@
+{
+    "channel_name": "mychannel",
+    "smart_contract_name": "telco-roaming-contract",
+    "connection_file": "connection.json",
+    "appAdmin": "app-admin2",
+    "orgMSPID": "Org1MSP",
+    "caName": "ca.example.com",
+    "peerName": "peer0.org1.example.com",
+    "ordererName": "orderer.example.com",
+    "gatewayDiscovery": { "enabled": true, "asLocalhost": true }
+}

@@ -175,7 +175,6 @@ class TelcoRoamingContract extends Contract {
     }
 
     async deleteCSP(ctx, name) {
-        //TODO: verify that there are no subscriberSims associated with this CSP - then delete CSP
         let exists = await this.assetExists(ctx, name);
         if (!exists) {
             throw new Error(`The CSP ${name} does not exist`);
@@ -194,6 +193,149 @@ class TelcoRoamingContract extends Contract {
             throw new Error(`The subscriber sim ${publicKey} does not exist`);
         }
         await ctx.stub.deleteState(publicKey);
+    }
+
+    //TODO: probably the latitude and longitude will also get updated - leave it for other devs?
+    //Once moveSim occurs, discovery transaction is invoked
+    async moveSim(ctx, simPublicKey, newLocation){
+        let exists = await this.assetExists(ctx, simPublicKey);
+        if (!exists) {
+            throw new Error(`The asset ${simPublicKey} does not exist`);
+        }
+        let buffer = await ctx.stub.getState(simPublicKey);
+        let asset = JSON.parse(buffer.toString());
+        let sim = await new SubscriberSim(simPublicKey, asset.msisdn, asset.address, asset.homeOperatorName, asset.roamingPartnerName,
+            asset.isRoaming, newLocation, asset.latitude, asset.longitude, asset.ratetype, asset.isValid);
+        await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(sim)));
+        buffer = await ctx.stub.getState(simPublicKey);
+        asset = JSON.parse(buffer.toString());
+        // define and set moveEvent
+        let moveEvent = {
+            type: 'Move Sim',
+            simPublicKey: simPublicKey,
+            roamingPartner: asset.roamingPartnerName,
+            homeOperator: asset.homeOperatorName,
+            location: newLocation
+        };
+        ctx.stub.setEvent('MoveEvent', Buffer.from(JSON.stringify(moveEvent)));
+    }
+
+    //Once discovery occurs, authentication transaction is invoked
+    async discovery(ctx, simPublicKey){
+        //get currentLocation of the sim.
+        //If it is different from homeOperator's location, find the CSP for this location.
+        //If same and isRoaming is true, then sim is back to home location - so reset
+        let returnValue;
+        //get sim object
+        let exists = await this.assetExists(ctx, simPublicKey);
+        if (!exists) {
+            throw new Error(`The asset ${simPublicKey} does not exist`);
+        }
+        let buffer = await ctx.stub.getState(simPublicKey);
+        let sim = JSON.parse(buffer.toString());
+
+        //get Home Operator Object
+        exists = await this.assetExists(ctx, sim.homeOperatorName);
+        if (!exists) {
+            throw new Error(`The sim's home operator ${sim.homeOperatorName} does not exist`);
+        }
+        buffer = await ctx.stub.getState(sim.homeOperatorName);
+        let HO = JSON.parse(buffer.toString());
+
+        //check if sim has moved out of home operator's region.
+        //if yes, find the operators for this region to figure out who the roaming provider will be.
+        if (HO.region!==sim.location){
+            //sim has moved out of the HO's area
+            //find the applicable roamingPartner
+            let queryString = {
+                selector: {
+                    type: 'CSP',
+                    region: sim.location
+                }
+            };
+
+            let queryResults = await this.queryWithQueryString(ctx, JSON.stringify(queryString));
+            let operators = [];
+
+            queryResults.forEach(function(queryResult){
+                operators.push(queryResult.Key);
+            });
+            console.info('List of operators in this area: ', JSON.stringify(operators));
+            if(operators.length>0){
+                //let RPname = operators[0];
+                //await this.updateRate(ctx, sim, RPname);
+
+                returnValue = operators[0];
+            }
+            else{
+                console.err('No operators in this location');
+            }
+        }
+        else{
+            //sim is back in home operator location. Call updateRate with homeOperator's name
+            //await this.updateRate(ctx, sim, HO.name);
+            returnValue = HO.name;
+        }
+        if(returnValue !== null){
+            // define and set moveEvent
+            let discoveryEvent = {
+                type: 'Discover Sim',
+                simPublicKey: simPublicKey,
+                localOperator: returnValue
+            };
+            await ctx.stub.setEvent('DiscoveryEvent', Buffer.from(JSON.stringify(discoveryEvent)));
+        }
+    }
+
+    //TODO: The CSP will make an authentication call to verify the user is not a fraud
+    //once verified, call updateRate
+    async authentication(ctx, simPublicKey){
+        //do nothing for now
+        //create event so that updateRate is triggered
+        let authenticationEvent = {
+            type: 'Authenticate Sim',
+            simPublicKey: simPublicKey
+        };
+        await ctx.stub.setEvent('AuthenticationEvent', Buffer.from(JSON.stringify(authenticationEvent)));
+    }
+
+    //called after authentication completes
+    async updateRate(ctx, simPublicKey, RPname){
+        let exists = await this.assetExists(ctx, simPublicKey);
+        if (!exists) {
+            throw new Error(`The asset ${simPublicKey} does not exist`);
+        }
+        let buffer = await ctx.stub.getState(simPublicKey);
+        let sim = JSON.parse(buffer.toString());
+
+        let newSim;
+        if (sim.homeOperatorName === RPname && sim.isRoaming === 'TRUE'){
+            newSim = await new SubscriberSim(sim.publicKey, sim.msisdn, sim.address, sim.homeOperatorName, '',
+                'FALSE', sim.location, sim.latitude, sim.longitude, '', sim.isValid);
+        }
+        else if (sim.homeOperatorName !== RPname){
+            let exists = await this.assetExists(ctx, RPname);
+            if (!exists) {
+                throw new Error(`The asset ${RPname} does not exist`);
+            }
+            let buffer = await ctx.stub.getState(RPname);
+            let RP = JSON.parse(buffer.toString());
+            newSim = await new SubscriberSim(sim.publicKey, sim.msisdn, sim.address, sim.homeOperatorName, RP.name,
+                'TRUE', sim.location, sim.latitude, sim.longitude, RP.roamingRate, sim.isValid);
+        }
+        await ctx.stub.putState(sim.publicKey, Buffer.from(JSON.stringify(newSim)));
+        buffer = await ctx.stub.getState(sim.publicKey);
+        let asset = JSON.parse(buffer.toString());
+        // define and set moveEvent
+        let updateRateEvent = {
+            type: 'UpdateRate Sim',
+            simPublicKey: simPublicKey,
+            homeOperator: asset.homeOperatorName,
+            isRoaming: asset.isRoaming,
+            roamingPartner: asset.roamingPartnerName,
+            roamingRate: asset.roamingRate
+        };
+        await ctx.stub.setEvent('UpdateRateEvent', Buffer.from(JSON.stringify(updateRateEvent)));
     }
 
     /**
