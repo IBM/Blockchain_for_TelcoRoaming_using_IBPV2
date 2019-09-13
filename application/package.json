@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "fabric-client": "^1.4.4",
-    "fabric-network": "^1.4.4"
+    "fabric-network": "^1.4.4",
+    "prompts": "^2.2.1"
   }
 }

@@ -32,7 +32,6 @@ var connection_file = config.connection_file;
 var appAdmin = config.appAdmin;
 //var appAdminSecret = config.appAdminSecret;
 var peerAddr = config.peerName;
-var peerEventHub = "grpc://localhost:17057";
 var orgMSPID = config.orgMSPID;
 
 let gatewayDiscoveryEnabled = 'enabled' in config.gatewayDiscovery?config.gatewayDiscovery.enabled:true;
@@ -44,6 +43,14 @@ const ccp = JSON.parse(ccpJSON);
 
 const gateway = new Gateway();
 
+var promises = [];
+
+process.on('unhandledRejection', error => {
+    // Will print "unhandledRejection err is not defined"
+    console.log('unhandledRejection', error.message);
+    return process.exit(1);
+});
+
 async function main() {
     if(process.argv.length != 4){
         console.log("Process argv length is ", process.argv.length, ". It should be 4");
@@ -52,7 +59,6 @@ async function main() {
     
     let simPublicKey = process.argv[2];
     let newLocation = process.argv[3];
-    var member_user = null;
 
     // A gateway defines the peers used to access Fabric networks
     
@@ -66,9 +72,6 @@ async function main() {
     
     const channel = client.getChannel(channelName);
     console.log('Got addressability to channel.');
-    
-    //const channel_event_hub = channel.getChannelEventHub(peerAddr);
-    //const channel_event_hub = channel.getChannelEventHub(peerAddr);
 
 	var user = await client.getUserContext(appAdmin, true);
 
@@ -76,25 +79,10 @@ async function main() {
     const contract = await network.getContract(smartContractName);
     console.log('Got addressability to contract');
 
-    var tx_id = client.newTransactionID(true);
-    console.log("Assigning transaction_id: ", tx_id._transaction_id);
+    let event_hub = channel.newChannelEventHub(peerAddr);
     
-    // create the key value store as defined in the fabric-client/config/default.json 'key-value-store' setting
-    let member_user_base = Fabric_Client.newDefaultKeyValueStore({ path: walletDir
-    }).then((wallet) => {
-        return user
-    }).then((user_from_store) => {
-        if (user_from_store && user_from_store.isEnrolled()) {
-            console.log('Successfully loaded user1 from persistence');
-            member_user = user_from_store;
-        } else {
-            throw new Error('Failed to get user1.... run registerUser.js');
-        }
-        return member_user;
-    });
-
     // get a transaction id object based on the current user assigned to fabric client
-    tx_id = client.newTransactionID(true);
+    var tx_id = client.newTransactionID(true);
     console.log("Assigning transaction_id: ", tx_id._transaction_id); 
     // must send the proposal to endorsing peers
     var request = {
@@ -127,25 +115,16 @@ async function main() {
                 proposal: proposal
             };
 
-            // set the transaction listener and set a timeout of 30 sec
-            // if the transaction did not get committed within the timeout period,
-            // report a TIMEOUT status
-            var transaction_id_string = tx_id.getTransactionID(); //Get the transaction ID string to be used by the event processing
-            var promises = [];
-
             var sendPromise = channel.sendTransaction(request);
             promises.push(sendPromise); //we want the send transaction first, so that we know where to check status
 
             console.log("Created Promise - moveSim");
         }
         
-        // get an eventhub once the fabric client has a user assigned. The user
-        // is required because the event registration must be signed
-        let event_hub = channel.newChannelEventHub(peerAddr);
         //console.log("Created eventhub - ", event_hub);
         event_hub.connect(true);
         console.log("connected to eventhub");
-        var regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'MoveEvent', function(event) {
+        var regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'MoveEvent-'+simPublicKey, function(event) {
             console.log(`Found MoveEvent`);
             console.log(event);
             console.log(util.format("Custom event received, payload: %j\n", event.payload.toString()));
@@ -184,12 +163,6 @@ async function main() {
                         proposal: proposal
                     };
 
-                    // set the transaction listener and set a timeout of 30 sec
-                    // if the transaction did not get committed within the timeout period,
-                    // report a TIMEOUT status
-                    var transaction_id_string = tx_id.getTransactionID(); //Get the transaction ID string to be used by the event processing
-                    var promises = [];
-
                     var sendPromise = channel.sendTransaction(request);
                     promises.push(sendPromise); //we want the send transaction first, so that we know where to check status
 
@@ -198,13 +171,12 @@ async function main() {
                 
                 event_hub.connect(true);
                 console.log("connected to eventhub");
-                var regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'DiscoveryEvent', function(event) {
+                var regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'DiscoveryEvent-'+simPublicKey, function(event) {
                     console.log(`Found discovery event`);
                     console.log(event);
                     console.log(util.format("Custom event received, payload: %j\n", event.payload.toString()));
                     let eventPayload = JSON.parse(event.payload.toString());
                     let operatorName = eventPayload.localOperator;
-                    console.log(operatorName);
                     event_hub.unregisterChaincodeEvent(regid);
                     // get a transaction id object based on the current user assigned to fabric client
                     tx_id = client.newTransactionID(true);
@@ -240,12 +212,6 @@ async function main() {
                                 proposal: proposal
                             };
 
-                            // set the transaction listener and set a timeout of 30 sec
-                            // if the transaction did not get committed within the timeout period,
-                            // report a TIMEOUT status
-                            var transaction_id_string = tx_id.getTransactionID(); //Get the transaction ID string to be used by the event processing
-                            var promises = [];
-
                             var sendPromise = channel.sendTransaction(request);
                             promises.push(sendPromise); //we want the send transaction first, so that we know where to check status
 
@@ -254,7 +220,7 @@ async function main() {
                         
                         event_hub.connect(true);
                         console.log("connected to eventhub");
-                        var regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'AuthenticationEvent', function(event) {
+                        var regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'AuthenticationEvent-'+simPublicKey, function(event) {
                             console.log(`Found authentication event`);
                             console.log(event);
                             console.log(util.format("Custom event received, payload: %j\n", event.payload.toString()));
@@ -262,7 +228,6 @@ async function main() {
                             // get a transaction id object based on the current user assigned to fabric client
                             tx_id = client.newTransactionID(true);
                             console.log("Assigning transaction_id: ", tx_id._transaction_id); 
-                            console.log("operatorName", operatorName);
                             // must send the proposal to endorsing peers
                             request = {
                                 //targets: let default to the peer assigned to the client
@@ -294,12 +259,6 @@ async function main() {
                                         proposal: proposal
                                     };
 
-                                    // set the transaction listener and set a timeout of 30 sec
-                                    // if the transaction did not get committed within the timeout period,
-                                    // report a TIMEOUT status
-                                    var transaction_id_string = tx_id.getTransactionID(); //Get the transaction ID string to be used by the event processing
-                                    var promises = [];
-
                                     var sendPromise = channel.sendTransaction(request);
                                     promises.push(sendPromise); //we want the send transaction first, so that we know where to check status
 
@@ -308,7 +267,7 @@ async function main() {
                                 
                                 event_hub.connect(true);
                                 console.log("connected to eventhub");
-                                var regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'UpdateRateEvent', function(event) {
+                                var regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'UpdateRateEvent-'+simPublicKey, function(event) {
                                     console.log(`Found updateRate event`);
                                     console.log(event);
                                     console.log(util.format("Custom event received, payload: %j\n", event.payload.toString()));

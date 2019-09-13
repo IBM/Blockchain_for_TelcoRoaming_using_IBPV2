@@ -25,7 +25,7 @@ class SubscriberSim {
      */
 
     constructor(publicKey, msisdn, address, homeOperatorName, roamingPartnerName,
-        isRoaming, location, latitude, longitude, ratetype, isValid) {
+        isRoaming, location, latitude, longitude, roamingRate, overageRate, callDetails, isValid, overageThreshold, allowOverage, overageFlag) {
 
         this.publicKey = publicKey;
         this.msisdn = msisdn;
@@ -36,8 +36,18 @@ class SubscriberSim {
         this.location = location;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.ratetype = ratetype;
+        this.roamingRate = roamingRate;
+        this.overageRate = overageRate;
+        if(callDetails === ''){
+            this.callDetails = [];
+        }
+        else{
+            this.callDetails = callDetails;
+        }
         this.isValid = isValid;
+        this.overageThreshold = overageThreshold;
+        this.allowOverage = allowOverage;
+        this.overageFlag = overageFlag;
         this.type = 'SubscriberSim';
 
         return this;

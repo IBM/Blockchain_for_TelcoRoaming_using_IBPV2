@@ -24,7 +24,6 @@ class CSP {
         this.type = 'CSP';
 
         return this;
-
     }
 }
 module.exports = CSP;
