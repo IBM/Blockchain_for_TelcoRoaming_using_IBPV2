@@ -4,7 +4,7 @@
   "description": "app for telco roaming",
   "scripts": {
     "start": "node createCSPAndSubscriberSim",
-    "lint": "eslint --ignore-path .gitignore .",
+    "lint": "eslint .",
     "pretest": "npm run lint"
   },
   "author": "IBM",
