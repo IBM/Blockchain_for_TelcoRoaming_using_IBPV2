@@ -5,13 +5,25 @@
 * SPDX-License-Identifier: Apache-2.0
 */
 /*
- * Chaincode Invoke
+ * Invoke the telco-roaming-contract to make a call.
+ * node callOut.js <simPublicKey>
+ * eg. node callOut.js sim1
+ *
+ * Assumptions: Ideally, a call would require the sim_id/msisdn to which the call is being made, but for simplicity we are ignoring that for now. Ideally, multiple calls can be made at the same time (using call holding), but for simplicity we are assuming that only 1 call can be made at a time.
+ *
+ * 1. call verifyUser - to authenticate the sim and check if the sim is reaching overage limits.
+ * 2. call setOverageFlag - to update the overageFlags - allowOverage and overageFlag
+ * 3. call callOut - to make the call.
+ *
+ * At step 1, an error is thrown if the sim has isValid = Fraud, thereby preventing the sim from making a call.
+ * Otherwise, the user is checked to see if they have reached overage limits.
+ * If the user has just reached the overage limit, then they are prompted to accept or deny the overage charges.
+ * Their response is stored as the allowOverage flag in the sim as part of step 2 and will decide if this as well as all future calls are made or not based on whether they accepted or denied the overage charges.
+ * Step 3 makes use of the overageFlags to make the call and save the start time of the call.
  */
 
-var util = require('util');
-var Fabric_Client = require('fabric-client');
-var fabric_client = new Fabric_Client();
-var prompts = require('prompts');
+let util = require('util');
+let prompts = require('prompts');
 
 const fs = require('fs');
 const path = require('path');
@@ -28,12 +40,9 @@ const configJSON = fs.readFileSync(configPath, 'utf8');
 const config = JSON.parse(configJSON);
 let channelName = config.channel_name;
 let smartContractName = config.smart_contract_name;
-let userName = config.appAdmin;
-var connection_file = config.connection_file;
-var appAdmin = config.appAdmin;
-//var appAdminSecret = config.appAdminSecret;
-var peerAddr = config.peerName;
-var orgMSPID = config.orgMSPID;
+let connection_file = config.connection_file;
+let appAdmin = config.appAdmin;
+let peerAddr = config.peerName;
 
 let gatewayDiscoveryEnabled = 'enabled' in config.gatewayDiscovery?config.gatewayDiscovery.enabled:true;
 let gatewayDiscoveryAsLocalhost = 'asLocalHost' in config.gatewayDiscovery?config.gatewayDiscovery.asLocalhost:true;
@@ -44,59 +53,46 @@ const ccp = JSON.parse(ccpJSON);
 
 const gateway = new Gateway();
 
-var promises = [];
+let promises = [];
 
 process.on('unhandledRejection', error => {
     // Will print "unhandledRejection err is not defined"
-    console.log('unhandledRejection', error.message);
+    console.log('An unhandled rejection was found - ', error.message);
     return process.exit(1);
 });
 
 async function main() {
-    if(process.argv.length != 3){
-        console.log("Process argv length is ", process.argv.length, ". It should be 3");
-        process.exit(1);
+    if(process.argv.length !== 3){
+        throw new Error('Process argv length is ', process.argv.length, '. It should be 3');
     }
-    
+
     let simPublicKey = process.argv[2];
 
     // A gateway defines the peers used to access Fabric networks
-    
+
     await gateway.connect(ccp, { wallet, identity: appAdmin , discovery: {enabled: gatewayDiscoveryEnabled, asLocalhost:gatewayDiscoveryAsLocalhost }});
-    console.log('Connected to Fabric gateway.');
-
-    // Get addressability to network
-    const network = await gateway.getNetwork(channelName);
-
     const client = gateway.getClient();
-    
     const channel = client.getChannel(channelName);
-    console.log('Got addressability to channel.');
-
-	var user = await client.getUserContext(appAdmin, true);
-
-    // Get addressability to  contract
-    const contract = await network.getContract(smartContractName);
-    console.log('Got addressability to contract');
 
     let event_hub = channel.newChannelEventHub(peerAddr);
-    
+
     // get a transaction id object based on the current user assigned to fabric client
-    var tx_id = client.newTransactionID(true);
-    console.log("Assigning transaction_id: ", tx_id._transaction_id); 
+    let tx_id = client.newTransactionID(true);
+    let fcn = 'verifyUser';
+    console.log(`Sending transaction proposal for ${fcn} with transaction id ${tx_id._transaction_id}`);
     // must send the proposal to endorsing peers
-    var request = {
+    let request = {
         //targets: let default to the peer assigned to the client
         chaincodeId: smartContractName,
-        fcn: 'verifyUser',
+        fcn: fcn,
         args: [simPublicKey],
         chainId: channelName,
         txId: tx_id
     };
     // send the transaction proposal to the peers
     channel.sendTransactionProposal(request).then((results) => {
-        var proposalResponses = results[0];
-        var proposal = results[1];
+        let proposalResponses = results[0];
+        let proposal = results[1];
         let isProposalGood = false;
         if (proposalResponses && proposalResponses[0].response && proposalResponses[0].response.status === 200) {
             isProposalGood = true;
@@ -110,48 +106,47 @@ async function main() {
                 proposalResponses[0].response.status, proposalResponses[0].response.message));
 
             // build up the request for the orderer to have the transaction committed
-            var request = {
+            let request = {
                 proposalResponses: proposalResponses,
                 proposal: proposal
             };
 
-            var sendPromise = channel.sendTransaction(request);
+            let sendPromise = channel.sendTransaction(request);
             promises.push(sendPromise); //we want the send transaction first, so that we know where to check status
 
-            console.log("Created Promise - verifyUser");
+            console.log(`Created Promise - ${fcn} for ` + simPublicKey);
         }
-        
+
         //console.log("Created eventhub - ", event_hub);
         event_hub.connect(true);
-        console.log("connected to eventhub");
-        var regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'VerifyUserEvent-'+simPublicKey, function(event) {
-            console.log(`Found VerifyUserEvent`);
-            console.log(event);
-            console.log(util.format("Custom event received, payload: %j\n", event.payload.toString()));
+        //console.log("connected to eventhub");
+        let regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'VerifyUserEvent-'+simPublicKey, function(event) {
+            console.log('Found VerifyUserEvent');
+            //console.log(event);
+            //console.log(util.format("Custom event received, payload: %j\n", event.payload.toString()));
             event_hub.unregisterChaincodeEvent(regid);
-            
+
             let overageFlag = JSON.parse(event.payload.toString()).nearingOverage;
             let allowOverage = JSON.parse(event.payload.toString()).allowOverage;
-            console.log(overageFlag);
-            console.log(allowOverage);
             if(overageFlag === 'FALSE' || (overageFlag === 'TRUE' && allowOverage !== '')){
                 //either hasn't reached overage, or has reached overage and we have already asked if the user agrees witht he overage charges or not.
                 // get a transaction id object based on the current user assigned to fabric client
-                var tx_id = client.newTransactionID(true);
-                console.log("Assigning transaction_id: ", tx_id._transaction_id); 
+                let tx_id = client.newTransactionID(true);
+                fcn = 'setOverageFlag';
+                console.log(`Sending transaction proposal for ${fcn} with transaction id ${tx_id._transaction_id}`);
                 // must send the proposal to endorsing peers
-                var request = {
+                let request = {
                     //targets: let default to the peer assigned to the client
                     chaincodeId: smartContractName,
-                    fcn: 'setOverageFlag',
+                    fcn: fcn,
                     args: [simPublicKey, overageFlag, allowOverage],
                     chainId: channelName,
                     txId: tx_id
                 };
                 // send the transaction proposal to the peers
                 channel.sendTransactionProposal(request).then((results) => {
-                    var proposalResponses = results[0];
-                    var proposal = results[1];
+                    let proposalResponses = results[0];
+                    let proposal = results[1];
                     let isProposalGood = false;
                     if (proposalResponses && proposalResponses[0].response && proposalResponses[0].response.status === 200) {
                         isProposalGood = true;
@@ -165,40 +160,41 @@ async function main() {
                             proposalResponses[0].response.status, proposalResponses[0].response.message));
 
                         // build up the request for the orderer to have the transaction committed
-                        var request = {
+                        let request = {
                             proposalResponses: proposalResponses,
                             proposal: proposal
                         };
 
-                        var sendPromise = channel.sendTransaction(request);
+                        let sendPromise = channel.sendTransaction(request);
                         promises.push(sendPromise); //we want the send transaction first, so that we know where to check status
 
-                        console.log("Created Promise - setOverageFlag");
+                        console.log(`Created Promise - ${fcn} for ` + simPublicKey);
                     }
 
                     //console.log("Created eventhub - ", event_hub);
                     event_hub.connect(true);
-                    console.log("connected to eventhub");
-                    var regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'SetOverageFlagEvent-'+simPublicKey, function(event) {
-                        console.log(`Found SetOverageFlagEvent`);
-                        console.log(event);
-                        console.log(util.format("Custom event received, payload: %j\n", event.payload.toString()));
+                    //console.log("connected to eventhub");
+                    let regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'SetOverageFlagEvent-'+simPublicKey, function() {
+                        console.log('Found SetOverageFlagEvent');
+                        //console.log(event);
+                        //console.log(util.format("Custom event received, payload: %j\n", event.payload.toString()));
                         event_hub.unregisterChaincodeEvent(regid);
-                        var tx_id = client.newTransactionID(true);
-                        console.log("Assigning transaction_id: ", tx_id._transaction_id); 
+                        let tx_id = client.newTransactionID(true);
+                        let fcn = 'callOut';
+                        console.log(`Sending transaction proposal for ${fcn} with transaction id ${tx_id._transaction_id}`);
                         // must send the proposal to endorsing peers
-                        var request = {
+                        let request = {
                             //targets: let default to the peer assigned to the client
                             chaincodeId: smartContractName,
-                            fcn: 'callOut',
+                            fcn: fcn,
                             args: [simPublicKey],
                             chainId: channelName,
                             txId: tx_id
                         };
                         // send the transaction proposal to the peers
                         channel.sendTransactionProposal(request).then((results) => {
-                            var proposalResponses = results[0];
-                            var proposal = results[1];
+                            let proposalResponses = results[0];
+                            let proposal = results[1];
                             let isProposalGood = false;
                             if (proposalResponses && proposalResponses[0].response && proposalResponses[0].response.status === 200) {
                                 isProposalGood = true;
@@ -212,24 +208,24 @@ async function main() {
                                     proposalResponses[0].response.status, proposalResponses[0].response.message));
 
                                 // build up the request for the orderer to have the transaction committed
-                                var request = {
+                                let request = {
                                     proposalResponses: proposalResponses,
                                     proposal: proposal
                                 };
 
-                                var sendPromise = channel.sendTransaction(request);
+                                let sendPromise = channel.sendTransaction(request);
                                 promises.push(sendPromise); //we want the send transaction first, so that we know where to check status
 
-                                console.log("Created Promise - callOut");
+                                console.log(`Created Promise - ${fcn} for ` + simPublicKey);
                             }
 
                             //console.log("Created eventhub - ", event_hub);
                             event_hub.connect(true);
-                            console.log("connected to eventhub");
-                            var regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'CallOutEvent-'+simPublicKey, function(event) {
-                                console.log(`Found CallOutEvent`);
-                                console.log(event);
-                                console.log(util.format("Custom event received, payload: %j\n", event.payload.toString()));
+                            //console.log("connected to eventhub");
+                            let regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'CallOutEvent-'+simPublicKey, function() {
+                                console.log('Found CallOutEvent');
+                                //console.log(event);
+                                //console.log(util.format("Custom event received, payload: %j\n", event.payload.toString()));
                                 event_hub.unregisterChaincodeEvent(regid);
                                 return process.exit(0);
                             });
@@ -250,7 +246,6 @@ async function main() {
                         ],
                         initial: 1
                     });
-                    console.log(response.value);
                     if(response.value === 'Yes'){
                         //call a function that sets the allowOverage to true
                         //and continue with callOut function
@@ -262,21 +257,22 @@ async function main() {
                         allowOverage = 'FALSE';
                     }
                     // get a transaction id object based on the current user assigned to fabric client
-                    var tx_id = client.newTransactionID(true);
-                    console.log("Assigning transaction_id: ", tx_id._transaction_id); 
+                    let tx_id = client.newTransactionID(true);
+                    fcn = 'setOverageFlag';
+                    console.log(`Sending transaction proposal for ${fcn} with transaction id ${tx_id._transaction_id}`);
                     // must send the proposal to endorsing peers
-                    var request = {
+                    let request = {
                         //targets: let default to the peer assigned to the client
                         chaincodeId: smartContractName,
-                        fcn: 'setOverageFlag',
+                        fcn: fcn,
                         args: [simPublicKey, overageFlag, allowOverage],
                         chainId: channelName,
                         txId: tx_id
                     };
                     // send the transaction proposal to the peers
                     channel.sendTransactionProposal(request).then((results) => {
-                        var proposalResponses = results[0];
-                        var proposal = results[1];
+                        let proposalResponses = results[0];
+                        let proposal = results[1];
                         let isProposalGood = false;
                         if (proposalResponses && proposalResponses[0].response && proposalResponses[0].response.status === 200) {
                             isProposalGood = true;
@@ -290,40 +286,41 @@ async function main() {
                                 proposalResponses[0].response.status, proposalResponses[0].response.message));
 
                             // build up the request for the orderer to have the transaction committed
-                            var request = {
+                            let request = {
                                 proposalResponses: proposalResponses,
                                 proposal: proposal
                             };
 
-                            var sendPromise = channel.sendTransaction(request);
+                            let sendPromise = channel.sendTransaction(request);
                             promises.push(sendPromise); //we want the send transaction first, so that we know where to check status
 
-                            console.log("Created Promise - setOverageFlag");
+                            console.log(`Created Promise - ${fcn} for ` + simPublicKey);
                         }
 
                         //console.log("Created eventhub - ", event_hub);
                         event_hub.connect(true);
-                        console.log("connected to eventhub");
-                        var regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'SetOverageFlagEvent-'+simPublicKey, function(event) {
-                            console.log(`Found SetOverageFlagEvent`);
-                            console.log(event);
-                            console.log(util.format("Custom event received, payload: %j\n", event.payload.toString()));
+                        //console.log("connected to eventhub");
+                        let regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'SetOverageFlagEvent-'+simPublicKey, function() {
+                            console.log('Found SetOverageFlagEvent');
+                            //console.log(event);
+                            //console.log(util.format("Custom event received, payload: %j\n", event.payload.toString()));
                             event_hub.unregisterChaincodeEvent(regid);
-                            var tx_id = client.newTransactionID(true);
-                            console.log("Assigning transaction_id: ", tx_id._transaction_id); 
+                            let tx_id = client.newTransactionID(true);
+                            fcn = 'callOut';
+                            console.log(`Sending transaction proposal for ${fcn} with transaction id ${tx_id._transaction_id}`);
                             // must send the proposal to endorsing peers
-                            var request = {
+                            let request = {
                                 //targets: let default to the peer assigned to the client
                                 chaincodeId: smartContractName,
-                                fcn: 'callOut',
+                                fcn: fcn,
                                 args: [simPublicKey],
                                 chainId: channelName,
                                 txId: tx_id
                             };
                             // send the transaction proposal to the peers
                             channel.sendTransactionProposal(request).then((results) => {
-                                var proposalResponses = results[0];
-                                var proposal = results[1];
+                                let proposalResponses = results[0];
+                                let proposal = results[1];
                                 let isProposalGood = false;
                                 if (proposalResponses && proposalResponses[0].response && proposalResponses[0].response.status === 200) {
                                     isProposalGood = true;
@@ -337,24 +334,24 @@ async function main() {
                                         proposalResponses[0].response.status, proposalResponses[0].response.message));
 
                                     // build up the request for the orderer to have the transaction committed
-                                    var request = {
+                                    let request = {
                                         proposalResponses: proposalResponses,
                                         proposal: proposal
                                     };
 
-                                    var sendPromise = channel.sendTransaction(request);
+                                    let sendPromise = channel.sendTransaction(request);
                                     promises.push(sendPromise); //we want the send transaction first, so that we know where to check status
 
-                                    console.log("Created Promise - callOut");
+                                    console.log(`Created Promise - ${fcn} for ` + simPublicKey);
                                 }
 
                                 //console.log("Created eventhub - ", event_hub);
                                 event_hub.connect(true);
-                                console.log("connected to eventhub");
-                                var regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'CallOutEvent-'+simPublicKey, function(event) {
-                                    console.log(`Found CallOutEvent`);
-                                    console.log(event);
-                                    console.log(util.format("Custom event received, payload: %j\n", event.payload.toString()));
+                                //console.log("connected to eventhub");
+                                let regid = event_hub.registerChaincodeEvent('telco-roaming-contract', 'CallOutEvent-'+simPublicKey, function() {
+                                    console.log('Found CallOutEvent');
+                                    //console.log(event);
+                                    //console.log(util.format("Custom event received, payload: %j\n", event.payload.toString()));
                                     event_hub.unregisterChaincodeEvent(regid);
                                     return process.exit(0);
                                 });

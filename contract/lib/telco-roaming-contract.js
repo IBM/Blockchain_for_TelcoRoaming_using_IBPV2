@@ -737,7 +737,6 @@ class TelcoRoamingContract extends Contract {
         let queryResults = await this.queryWithQueryString(ctx, JSON.stringify(queryString));
         let simsForCSP = [];
 
-        // eslint-disable-next-line no-constant-condition
         queryResults.forEach(function(queryResult){
             simsForCSP.push(queryResult.Key);
         });

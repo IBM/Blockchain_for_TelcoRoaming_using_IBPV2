@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "app for telco roaming",
   "scripts": {
-    "start": "node moveSim",
-    "lint": "eslint --ignore-path .gitignore ."
+    "start": "node createCSPAndSubscriberSim",
+    "lint": "eslint --ignore-path .gitignore .",
+    "pretest": "npm run lint"
   },
   "author": "IBM",
   "license": "Apache-2.0",
@@ -16,5 +17,8 @@
     "fabric-client": "^1.4.4",
     "fabric-network": "^1.4.4",
     "prompts": "^2.2.1"
+  },
+  "devDependencies": {
+    "eslint": "^6.4.0"
   }
 }
