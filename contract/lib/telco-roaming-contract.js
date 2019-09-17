@@ -19,78 +19,6 @@ class TelcoRoamingContract extends Contract {
 
     /**
      *
-     * instantiate
-     *
-     * This function creates CSPs and SubscriberSims using the data files in the data dictionary
-     * and gets the application ready for use.
-     *
-     * @param ctx - the context of the transaction
-     * @returns - nothing - but updates the world state with the CSPs and SubscriberSims
-     */
-
-    async instantiate(ctx) {
-
-        /*console.log('instantiate was called');
-
-        let CSPs = [];
-        let subscriberSims = [];
-
-        //create CSPs
-        let csp1 = await new CSP('AT&T', 'New York', '0.50', '0.75');
-        let csp2 = await new CSP('T-Mobile', 'Washington DC', '0.75', '0.25');
-        let csp3 = await new CSP('Verizon', 'Boston', '0.25', '1.00');
-
-        //update CSP array
-        CSPs.push(csp1);
-        CSPs.push(csp2);
-        CSPs.push(csp3);
-        console.log(CSPs);
-
-        //add CSPs to world state
-        await ctx.stub.putState(csp1.name, Buffer.from(JSON.stringify(csp1)));
-        await ctx.stub.putState(csp2.name, Buffer.from(JSON.stringify(csp2)));
-        await ctx.stub.putState(csp3.name, Buffer.from(JSON.stringify(csp3)));
-
-        let callDetails = [];
-
-        //create SubscriberSims
-        let sim1 = await new SubscriberSim('sim1','4691234567','New York','AT&T','','FALSE','New York','40.942746', '-74.91','',callDetails, '');
-        let sim2 = await new SubscriberSim('sim2','4691234568','New York','AT&T','','FALSE','New York','36.931', '-78.994838','',callDetails, '');
-        let sim3 = await new SubscriberSim('sim3','4691234569','Washington DC','T-Mobile','','FALSE','Washington DC','37.776', '-77.414','',callDetails, '');
-        let sim4 = await new SubscriberSim('sim4','3097218855','Washington DC','T-Mobile','','FALSE','Washington DC','38.50', '-75.678','',callDetails, '');
-        let sim5 = await new SubscriberSim('sim5','9091234567','Washington DC','T-Mobile','','FALSE','Washington DC', '40.145', '-71.6574','',callDetails, '');
-        let sim6 = await new SubscriberSim('sim6','9091234568','Boston','Verizon','AT&T','FALSE','Boston', '41.3851', '-78.345','',callDetails, '');
-
-        //update SubscriberSims array
-        subscriberSims.push(sim1);
-        subscriberSims.push(sim2);
-        subscriberSims.push(sim3);
-        subscriberSims.push(sim4);
-        subscriberSims.push(sim5);
-        subscriberSims.push(sim6);
-        console.log(subscriberSims);
-
-        //add SubscriberSims to world state
-        await ctx.stub.putState(sim1.publicKey, Buffer.from(JSON.stringify(sim1)));
-        await ctx.stub.putState(sim2.publicKey, Buffer.from(JSON.stringify(sim2)));
-        await ctx.stub.putState(sim3.publicKey, Buffer.from(JSON.stringify(sim3)));
-        await ctx.stub.putState(sim4.publicKey, Buffer.from(JSON.stringify(sim4)));
-        await ctx.stub.putState(sim5.publicKey, Buffer.from(JSON.stringify(sim5)));
-        await ctx.stub.putState(sim6.publicKey, Buffer.from(JSON.stringify(sim6)));
-
-        console.log('CSPs and Subscriber sims have been instantiated');
-
-        await this.authentication(ctx, sim1.publicKey);
-        await this.authentication(ctx, sim2.publicKey);
-        await this.authentication(ctx, sim3.publicKey);
-        await this.authentication(ctx, sim4.publicKey);
-        await this.authentication(ctx, sim5.publicKey);
-        await this.authentication(ctx, sim6.publicKey);
-        console.log('Subscriber sims have been authenticated');*/
-    }
-
-    /**
-     *
      * assetExists
      *
      * This function checks if a CSP/SubscriberSim exists.
@@ -100,7 +28,6 @@ class TelcoRoamingContract extends Contract {
      * @returns - true if the asset exists and false if the asset does not exist
      */
     async assetExists(ctx, assetId) {
-        console.log('checking if ',assetId, ' exists');
         let buffer = await ctx.stub.getState(assetId);
         return (!!buffer && buffer.length > 0);
     }
@@ -141,16 +68,13 @@ class TelcoRoamingContract extends Contract {
      * @returns - nothing - but updates the world state with the CSP
      */
     async createCSP(ctx, name, region, overageRate, roamingRate) {
-        console.log('Trying to create CSP ', name);
         let exists = await this.assetExists(ctx, name);
         if (exists) {
             throw new Error(`The CSP ${name} already exists`);
         }
-        console.log(name, ' does not exist. Creating...');
 
         let newCSP = new CSP(name, region, overageRate, roamingRate);
         await ctx.stub.putState(name, Buffer.from(JSON.stringify(newCSP)));
-        console.log('returning from ', name);
 
         // define and set createCSPEvent
         let createCSPEvent = {
@@ -158,7 +82,6 @@ class TelcoRoamingContract extends Contract {
             cspName: name
         };
         ctx.stub.setEvent('CreateCSPEvent-'+name, Buffer.from(JSON.stringify(createCSPEvent)));
-        //return csp;
     }
 
     /**
@@ -196,7 +119,6 @@ class TelcoRoamingContract extends Contract {
 
         //verify that the homeOperator CSP is already created
         let HOexists = await this.assetExists(ctx, homeOperatorName);
-        console.log('HOExists',HOexists);
         if (!HOexists) {
             throw new Error(`The home operator CSP ${homeOperatorName} does not exist`);
         }
@@ -211,7 +133,7 @@ class TelcoRoamingContract extends Contract {
         let sim = new SubscriberSim(publicKey, msisdn, address, homeOperatorName, roamingPartnerName, isRoaming, location, latitude, longitude, roamingRate, overageRate, callDetails, isValid, overageThreshold, allowOverage, overageFlag);
         await ctx.stub.putState(publicKey, Buffer.from(JSON.stringify(sim)));
 
-        // define and set createCSPEvent
+        // define and set createSubscriberSimEvent
         let createSubscriberSimEvent = {
             type: 'Create SubscriberSim',
             simPublicKey: publicKey
@@ -219,6 +141,19 @@ class TelcoRoamingContract extends Contract {
         ctx.stub.setEvent('CreateSubscriberSimEvent-'+publicKey, Buffer.from(JSON.stringify(createSubscriberSimEvent)));
     }
 
+    /**
+     *
+     * updateCSP
+     *
+     * This function updates an existing CSP.
+     *
+     * @param ctx - the context of the transaction
+     * @param name - the name of the CSP
+     * @param region - the region for the CSP
+     * @param overageRate - the overageRate charged by the CSP
+     * @param roamingRate - the roamingRate charged by the CSP
+     * @returns - nothing - but updates the world state with the CSP
+     */
     async updateCSP(ctx, name, region, overageRate, roamingRate) {
         let exists = await this.assetExists(ctx, name);
         if (!exists) {
@@ -229,6 +164,31 @@ class TelcoRoamingContract extends Contract {
         await ctx.stub.putState(name, Buffer.from(JSON.stringify(csp)));
     }
 
+    /**
+     *
+     * updateSubscriberSim
+     *
+     * This function updates an existing SubscriberSim.
+     *
+     * @param ctx - the context of the transaction
+     * @param publicKey - the publicKey for the SubscriberSim
+     * @param msisdn - the msisdn for the SubscriberSim
+     * @param address - the home address of the SubscriberSim
+     * @param homeOperatorName - the name of the home operator of the SubscriberSim
+     * @param roamingPartnerName - the name of the roaming partner of the SubscriberSim
+     * @param isRoaming - the flag that indicates if the SubscriberSim is currently roaming
+     * @param location - the location for the SubscriberSim
+     * @param latitude - the latitude for the SubscriberSim (not being updated in the code currently - ideally will be updated every time the sim moves to a new location (see this.moveSim()))
+     * @param longitude - the longitude for the SubscriberSim (not being updated in the code currently - ideally will be updated every time the sim moves to a new location (see this.moveSim()))
+     * @param roamingRate - the call rate used for all roaming calls made by the SubscriberSim
+     * @param overageRate - the call rate used for all roaming calls made by the SubscriberSim when it has crossed the overageThreshold
+     * @param callDetails - the list of all calls made by the SubscriberSim - refer CallDetails.js for details
+     * @param isValid - the flag that indicates if the SubscriberSim is an Active user or a Fraud user
+     * @param overageThreshold - if the sum of all call charges made by the SubscriberSim is nearing this threshold, then the overageRate will be applied to future calls instead of the roamingRate
+     * @param allowOverage - the flag that indicates if the SubscriberSim agrees for the overageRate to be applied for future calls. No calls will be allowed if the SubscriberSim disagrees - that is if the allowOverage is FALSE
+     * @param overageFlag - the flag that indicates if this SubscriberSim has reached the overageThreshold
+     * @returns - nothing - but updates the world state with the SubscriberSim
+     */
     async updateSubscriberSim(ctx, publicKey, msisdn, address, homeOperatorName, roamingPartnerName,
         isRoaming, location, latitude, longitude, roamingRate, overageRate, callDetails, isValid, overageThreshold, allowOverage, overageFlag) {
         let exists = await this.assetExists(ctx, publicKey);
@@ -238,7 +198,6 @@ class TelcoRoamingContract extends Contract {
 
         //verify that the homeOperator CSP is already created
         let HOexists = await this.assetExists(ctx, homeOperatorName);
-        console.log('HOExists',HOexists);
         if (!HOexists) {
             throw new Error(`The home operator CSP ${homeOperatorName} does not exist`);
         }
@@ -255,12 +214,24 @@ class TelcoRoamingContract extends Contract {
         await ctx.stub.putState(publicKey, Buffer.from(JSON.stringify(sim)));
     }
 
+    /**
+     *
+     * deleteCSP
+     *
+     * This function deletes an existing CSP. It ensures that no subscriberSim is associated with this CSP
+     * (i.e. no subscriberSim exists that has this CSP as either the homeOperator or the roamingPartner)
+     * and only then the CSP is deleted.
+     *
+     * @param ctx - the context of the transaction
+     * @param name - the name of the CSP
+     * @returns - nothing - but removes the CSP from the world state
+     */
     async deleteCSP(ctx, name) {
         let exists = await this.assetExists(ctx, name);
         if (!exists) {
             throw new Error(`The CSP ${name} does not exist`);
         }
-        //if CSP exists, verify that no subscriber sims are associated with it before deleting the CSP
+        //if CSP exists, verify that no subscriber sims are associated with it (HomeOperator or RoamingPartner) before deleting the CSP
         let queryResults = await this.findAllSubscriberSimsForCSP(ctx, name);
         if (queryResults.length > 0){
             throw new Error(`The CSP ${name} can not be deleted as the following sims are currently in its network: ${queryResults}`);
@@ -268,6 +239,16 @@ class TelcoRoamingContract extends Contract {
         await ctx.stub.deleteState(name);
     }
 
+    /**
+     *
+     * deleteSubscriberSim
+     *
+     * This function deletes an existing SubscriberSim.
+     *
+     * @param ctx - the context of the transaction
+     * @param publicKey - the publicKey of the SubscriberSim
+     * @returns - nothing - but removes the SubscriberSim from the world state
+     */
     async deleteSubscriberSim(ctx, publicKey) {
         let exists = await this.assetExists(ctx, publicKey);
         if (!exists) {
@@ -276,8 +257,21 @@ class TelcoRoamingContract extends Contract {
         await ctx.stub.deleteState(publicKey);
     }
 
+    /**
+     *
+     * moveSim
+     *
+     * This function moves a SubscriberSim to a new location.
+     *
+     * @param ctx - the context of the transaction
+     * @param simPublicKey - the publicKey of the SubscriberSim
+     * @param newLocation - the location to which the SubscriberSim has moved
+     * @returns - nothing - but updates the SubscriberSim in the world state.
+     *
+     * Generates an event that indicates that the sim has been moved.
+     */
+
     //TODO: ideally the latitude and longitude will also get updated - that is being left for other developers to work on
-    //Once moveSim occurs, discovery transaction is invoked
     async moveSim(ctx, simPublicKey, newLocation){
         let exists = await this.assetExists(ctx, simPublicKey);
         if (!exists) {
@@ -285,10 +279,9 @@ class TelcoRoamingContract extends Contract {
         }
         let buffer = await ctx.stub.getState(simPublicKey);
         let asset = JSON.parse(buffer.toString());
-        let sim = new SubscriberSim(simPublicKey, asset.msisdn, asset.address, asset.homeOperatorName, asset.roamingPartnerName, asset.isRoaming, newLocation, asset.latitude, asset.longitude, asset.roamingRate, asset.overageRate, asset.callDetails, asset.isValid, asset.overageThreshold, asset.allowOverage, asset.overageFlag);
-        await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(sim)));
-        buffer = await ctx.stub.getState(simPublicKey);
-        asset = JSON.parse(buffer.toString());
+        asset.location = newLocation;
+        await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(asset)));
+
         // define and set moveEvent
         let moveEvent = {
             type: 'Move Sim',
@@ -300,7 +293,20 @@ class TelcoRoamingContract extends Contract {
         ctx.stub.setEvent('MoveEvent-'+simPublicKey, Buffer.from(JSON.stringify(moveEvent)));
     }
 
-    //Once discovery occurs, authentication transaction is invoked
+    /**
+     *
+     * discovery
+     *
+     * This function discovers a sim that has moved to a new location and identifies the new localOperator
+     * (roamingPartner - in case the location is not the same as the home location and
+     * homeOperator - in case the location is the same as the home location)
+     *
+     * @param ctx - the context of the transaction
+     * @param simPublicKey - the publicKey of the SubscriberSim
+     * @returns - nothing
+     *
+     * Generates an event that indicates that the sim has been discovered and we now know of its new local operator.
+     */
     async discovery(ctx, simPublicKey){
         //get currentLocation of the sim.
         //If it is different from homeOperator's location, find the CSP for this location.
@@ -340,24 +346,20 @@ class TelcoRoamingContract extends Contract {
             queryResults.forEach(function(queryResult){
                 operators.push(queryResult.Key);
             });
-            console.info('List of operators in this area: ', JSON.stringify(operators));
+            console.log('List of operators in this area: ', JSON.stringify(operators));
             if(operators.length>0){
-                //let RPname = operators[0];
-                //await this.updateRate(ctx, sim, RPname);
-
                 returnValue = operators[0];
             }
             else{
-                console.error('No operators in this location');
+                throw new Error(`No operators found for the location ${sim.location}`);
             }
         }
         else{
-            //sim is back in home operator location. Call updateRate with homeOperator's name
-            //await this.updateRate(ctx, sim, HO.name);
+            //sim is back in home operator location. Return homeOperator's name
             returnValue = HO.name;
         }
         if(returnValue !== null){
-            // define and set moveEvent
+            // define and set discoveryEvent
             let discoveryEvent = {
                 type: 'Discover Sim',
                 simPublicKey: simPublicKey,
@@ -367,7 +369,19 @@ class TelcoRoamingContract extends Contract {
         }
     }
 
-    //once user is authenticated, call updateRate
+    /**
+     *
+     * authentication
+     *
+     * This function authenticates a SubscriberSim that has been discovered in a new location.
+     * The sim is marked as Active or Fraud by verifying that the msisdn of the sim is not already in use by another sim.
+     *
+     * @param ctx - the context of the transaction
+     * @param simPublicKey - the publicKey of the SubscriberSim
+     * @returns - nothing - but updates the SubscriberSim in the world state.
+     *
+     * Generates an event that indicates that the sim has been authenticated and specifies the validity (Active/Fraud) of the sim.
+     */
     async authentication(ctx, simPublicKey){
         let exists = await this.assetExists(ctx, simPublicKey);
         if (!exists) {
@@ -387,33 +401,15 @@ class TelcoRoamingContract extends Contract {
             }
         };
         let queryResults = await this.queryWithQueryString(ctx, JSON.stringify(queryString));
-        console.log(queryResults);
         if (queryResults.length > 0){
             currentSim.isValid = 'Fraud';
         }
         else{
             currentSim.isValid = 'Active';
         }
-        /*let sims = [];
-        queryResults.forEach(function(queryResult){
-            sims.push(queryResult.Record);
-        });
-        let fraud = 0;
-        sims.forEach(function(sim){
-            //sim is Active
-            if(sim.msisdn === currentSim.msisdn && sim.isValid !== ''){
-                fraud = 1;
-            }
-        });
-        if(fraud === 1){
-            currentSim.isValid = 'Fraud';
-        }
-        else{
-            currentSim.isValid = 'Active';
-        }*/
         await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(currentSim)));
 
-        //create event so that updateRate is triggered
+        //create authenticationEvent
         let authenticationEvent = {
             type: 'Authenticate Sim',
             isValid: currentSim.isValid,
@@ -422,7 +418,22 @@ class TelcoRoamingContract extends Contract {
         await ctx.stub.setEvent('AuthenticationEvent-'+simPublicKey, Buffer.from(JSON.stringify(authenticationEvent)));
     }
 
-    //called after authentication completes
+    /**
+     *
+     * updateRate
+     *
+     * This function updates the roaming and overage rates of the SubscriberSim
+     * once it has moved to a new location and has subsequently been discovered and authenticated.
+     * Throws an error if the authentication step identified the sim's validity as Fraud.
+     * Otherwise updates the rates.
+     *
+     * @param ctx - the context of the transaction
+     * @param simPublicKey - the publicKey of the SubscriberSim
+     * @param RPname - the name of the roaming partner CSP
+     * @returns - nothing - but updates the SubscriberSim in the world state.
+     *
+     * Generates an event that indicates that the sim's rates have been updated.
+     */
     async updateRate(ctx, simPublicKey, RPname){
         let exists = await this.assetExists(ctx, simPublicKey);
         if (!exists) {
@@ -433,14 +444,13 @@ class TelcoRoamingContract extends Contract {
         if(sim.isValid === 'Fraud'){
             throw new Error(`This user ${simPublicKey} has been marked as fraudulent because the msisdn specified by this user is already in use. No calls can be made by this user.`);
         }
-        let newSim;
         //user has moved back to home location
-        if (sim.homeOperatorName === RPname && sim.isRoaming === 'TRUE'){
-            /*sim.roamingPartnerName = '';
-            sim.isRoaming = 'FALSE';
+        if (sim.homeOperatorName === RPname && sim.isRoaming === 'true'){
+            sim.roamingPartnerName = '';
+            sim.isRoaming = 'false';
             sim.roamingRate = '';
-            await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(sim)));*/
-            newSim = new SubscriberSim(sim.publicKey, sim.msisdn, sim.address, sim.homeOperatorName, '', 'FALSE', sim.location, sim.latitude, sim.longitude, '', '', sim.callDetails, sim.isValid, sim.overageThreshold, sim.allowOverage, sim.overageFlag);
+            sim.overageRate = '';
+            await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(sim)));
         }
         else if (sim.homeOperatorName !== RPname){
             let exists = await this.assetExists(ctx, RPname);
@@ -449,29 +459,48 @@ class TelcoRoamingContract extends Contract {
             }
             let buffer = await ctx.stub.getState(RPname);
             let RP = JSON.parse(buffer.toString());
-            newSim = new SubscriberSim(sim.publicKey, sim.msisdn, sim.address, sim.homeOperatorName, RP.name, 'TRUE', sim.location, sim.latitude, sim.longitude, RP.roamingRate, RP.overageRate, sim.callDetails, sim.isValid, sim.overageThreshold, sim.allowOverage, sim.overageFlag);
+            sim.roamingPartnerName = RP.name;
+            sim.isRoaming = 'true';
+            sim.roamingRate = RP.roamingRate;
+            sim.overageRate = RP.overageRate;
+            await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(sim)));
         }
-        await ctx.stub.putState(sim.publicKey, Buffer.from(JSON.stringify(newSim)));
-        buffer = await ctx.stub.getState(sim.publicKey);
-        let asset = JSON.parse(buffer.toString());
+
         // define and set updateRate event
         let updateRateEvent = {
             type: 'UpdateRate Sim',
             simPublicKey: simPublicKey,
-            homeOperator: asset.homeOperatorName,
-            isRoaming: asset.isRoaming,
-            roamingPartner: asset.roamingPartnerName,
-            roamingRate: asset.roamingRate
+            homeOperator: sim.homeOperatorName,
+            isRoaming: sim.isRoaming,
+            roamingPartner: sim.roamingPartnerName,
+            roamingRate: sim.roamingRate
         };
         await ctx.stub.setEvent('UpdateRateEvent-'+simPublicKey, Buffer.from(JSON.stringify(updateRateEvent)));
     }
 
+    /**
+     *
+     * verifyUser
+     *
+     * This function verifies if a SubscriberSim can make a call.
+     * It in turn calls checkIfFraudUser and checkForOverage functions.
+     * Throws an error if checkIfFraudUser returns true, that is if the sim has isValid = Fraud.
+     * Otherwise performs the call to checkForOverage which returns the overageFlags for the sim.
+     *
+     * @param ctx - the context of the transaction
+     * @param simPublicKey - the publicKey of the SubscriberSim
+     * @returns - nothing
+     *
+     * Generates an event that indicates that verifyUser was successful.
+     * Adds the overageFlags (overageFlag, allowOverage) information for the sim as part of the event.
+     */
     async verifyUser(ctx, simPublicKey){
         if(await this.checkIfFraudUser(ctx, simPublicKey)){
             throw new Error(`This user ${simPublicKey} has been marked as fraudulent because the msisdn specified by this user is already in use. No calls can be made by this user.`);
         }
         let overageFlags = await this.checkForOverage(ctx, simPublicKey);
-        // define and set callOutEvent
+
+        // define and set verifyUserEvent
         let verifyUserEvent = {
             type: 'Verify User',
             simPublicKey: simPublicKey,
@@ -482,6 +511,16 @@ class TelcoRoamingContract extends Contract {
 
     }
 
+    /**
+     *
+     * checkIfFraudUser
+     *
+     * This function checks if the SubscriberSim has isValid = Fraud.
+     *
+     * @param ctx - the context of the transaction
+     * @param simPublicKey - the publicKey of the SubscriberSim
+     * @returns - true if sim.isValid = Fraud, else false
+     */
     async checkIfFraudUser(ctx, simPublicKey){
         let exists = await this.assetExists(ctx, simPublicKey);
         if (!exists) {
@@ -490,12 +529,21 @@ class TelcoRoamingContract extends Contract {
         let buffer = await ctx.stub.getState(simPublicKey);
         let asset = JSON.parse(buffer.toString());
         if(asset.isValid === 'Fraud'){
-            //throw new Error(`This user ${simPublicKey} has been marked as fraudulent because the msisdn specified by this user is already in use. No calls can be made by this user.`);
             return true;
         }
         return false;
     }
 
+    /**
+     *
+     * checkForOverage
+     *
+     * This function identifies if a SubscriberSim is reaching its overage limit, in which case it updates the overageFlag.
+     *
+     * @param ctx - the context of the transaction
+     * @param simPublicKey - the publicKey of the SubscriberSim
+     * @returns - the overageFlag and the allowOverage flag of the SubscriberSim.
+     */
     async checkForOverage(ctx, simPublicKey){
         let exists = await this.assetExists(ctx, simPublicKey);
         if (!exists) {
@@ -503,7 +551,7 @@ class TelcoRoamingContract extends Contract {
         }
         let buffer = await ctx.stub.getState(simPublicKey);
         let asset = JSON.parse(buffer.toString());
-        if(asset.overageFlag === 'TRUE'){
+        if(asset.overageFlag === 'true'){
             return [asset.overageFlag, asset.allowOverage];
         }
         let callDetails = asset.callDetails;
@@ -514,28 +562,42 @@ class TelcoRoamingContract extends Contract {
         if (totalCallCharges + parseFloat(asset.roamingRate) > parseFloat(asset.overageThreshold)){
             //reaching overage
             //set the overageFlag to true to indicate that reaching overage
-            asset.overageFlag = 'TRUE';
+            asset.overageFlag = 'true';
             await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(asset)));
-            return ['TRUE', asset.allowOverage];
+            return ['true', asset.allowOverage];
         }
         else{
             //not reaching overage threshold
+            //return flags as is
             return [asset.overageFlag, asset.allowOverage];
         }
     }
 
-    async setOverageFlag(ctx, simPublicKey, overageFlag, allowOverage){
+    /**
+     *
+     * setOverageFlag
+     *
+     * This function updates the allowOverage flag of the SubscriberSim using allowOverage value that is passed as input.
+     * The allowOverage flag indicates whether the blockchain user has agreed to the additional overage charges or not.
+     *
+     * @param ctx - the context of the transaction
+     * @param simPublicKey - the publicKey of the SubscriberSim
+     * @param allowOverage - the allowOverage flag value that has to be set in this sim
+     * @returns - nothing - but updates the SubscriberSim in the world state.
+     *
+     * Generates an event that indicates that the setOverageFlag was successful.
+     */
+    async setOverageFlag(ctx, simPublicKey, allowOverage){
         let exists = await this.assetExists(ctx, simPublicKey);
         if (!exists) {
             throw new Error(`The asset ${simPublicKey} does not exist`);
         }
         let buffer = await ctx.stub.getState(simPublicKey);
         let asset = JSON.parse(buffer.toString());
-        if(overageFlag === 'TRUE' && asset.allowOverage === ''){
+        if(asset.overageFlag === 'true' && asset.allowOverage === ''){
             //we are in overage and therefore allowOverage value needs to be set
             asset.allowOverage = allowOverage;
             await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(asset)));
-            //proceed to callOut
         }
 
         // define and set setOverageFlagEvent
@@ -546,7 +608,24 @@ class TelcoRoamingContract extends Contract {
         ctx.stub.setEvent('SetOverageFlagEvent-'+simPublicKey, Buffer.from(JSON.stringify(setOverageFlagEvent)));
     }
 
-    //TODO: probably should also include the sim number that is being called - but leaving that for other devs
+    /**
+     *
+     * callOut
+     *
+     * This function generates an outgoing call for the SubscriberSim.
+     * If the sim hasn't reached overage limit or if it has reached overage limit but the user has accepted
+     * the overage charges (during this call or at any callOut before this) then the call is made.
+     * If the overage limit has been reached and the user has denied the overage charges (during this call
+     * or at any callOut before this) then the call is not made, and an error is thrown.
+     *
+     * @param ctx - the context of the transaction
+     * @param simPublicKey - the publicKey of the SubscriberSim
+     * @returns - nothing - but updates the SubscriberSim in the world state.
+     *
+     * Generates an event that indicates that callOut was successful and specifies the begin time for the call.
+     */
+
+    //TODO: probably should also include the sim number that is being called - but leaving that for other devs to implement
     async callOut(ctx, simPublicKey){
         let exists = await this.assetExists(ctx, simPublicKey);
         if (!exists) {
@@ -554,10 +633,10 @@ class TelcoRoamingContract extends Contract {
         }
         let buffer = await ctx.stub.getState(simPublicKey);
         let asset = JSON.parse(buffer.toString());
-        if(asset.overageFlag === 'TRUE' && asset.allowOverage === 'FALSE'){
+        if(asset.overageFlag === 'true' && asset.allowOverage === 'false'){
             throw new Error(`No further calls will be allowed as the user ${simPublicKey} has reached the overage threshold and has denied the overage charges.`);
         }
-        //if asset.overageFlag === 'FALSE' || (asset.overageFlag === 'TRUE' && asset.allowOverage === 'FALSE')
+        //else if asset.overageFlag === 'false' || (asset.overageFlag === 'true' && asset.allowOverage === 'false')
         //continue with callOut
         let callDetailIndex = asset.callDetails.length;
         asset.callDetails.push(new CallDetails(new Date(), '', ''));
@@ -572,6 +651,22 @@ class TelcoRoamingContract extends Contract {
         ctx.stub.setEvent('CallOutEvent-'+simPublicKey, Buffer.from(JSON.stringify(callOutEvent)));
     }
 
+    /**
+     *
+     * callEnd
+     *
+     * This function ends an ongoing call for the SubscriberSim.
+     * It throws an error is no ongoing call is found for the sim, otherwise it finds the first ongoing call
+     * for the sim and marks it as complete by adding a callEnd time.
+     *
+     * @param ctx - the context of the transaction
+     * @param simPublicKey - the publicKey of the SubscriberSim
+     * @returns - nothing - but updates the SubscriberSim in the world state.
+     *
+     * Generates an event that indicates that callEnd was successful and specifies the begin and end times for the call
+     * as well as the duration of the call and the index of the call in the list of calls for this sim.
+     */
+
     //TODO: probably should also include the sim number that is being called - but leaving that for other devs
     async callEnd(ctx, simPublicKey){
         let exists = await this.assetExists(ctx, simPublicKey);
@@ -584,12 +679,8 @@ class TelcoRoamingContract extends Contract {
             throw new Error(`This user ${simPublicKey} has been marked as fraudulent because the msisdn specified by this user is already in use. No calls can be made by this user.`);
         }
         let callDetailIndex;
-        //get the call that is ongoing currently
-        /*asset.callDetails.forEach(function(callDetail, i){
-            if(callDetail.callBegin !== '' && callDetail.callEnd === ''){
-                callDetailIndex = i;
-            }
-        });*/
+        //get the call that is ongoing currently (that is the first call which has a non-null callBegin and a null callEnd)
+        //assuming here that at a time only one call will be ongoing (which isn't necessarily true in a real scenario)
         for (const[index, callDetail] of asset.callDetails.entries()){
             if(callDetail.callBegin !== '' && callDetail.callEnd === ''){
                 callDetailIndex = index;
@@ -599,10 +690,11 @@ class TelcoRoamingContract extends Contract {
         if(callDetailIndex === undefined){
             throw new Error(`No ongoing call for the user ${simPublicKey} was found. Can not continue with callEnd process.`);
         }
+
         asset.callDetails[callDetailIndex].callEnd = new Date();
-        let sim = new SubscriberSim(simPublicKey, asset.msisdn, asset.address, asset.homeOperatorName, asset.roamingPartnerName, asset.isRoaming, asset.location, asset.latitude, asset.longitude, asset.roamingRate, asset.overageRate, asset.callDetails, asset.isValid, asset.overageThreshold, asset.allowOverage, asset.overageFlag);
-        await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(sim)));
+        await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(asset)));
         let callDurationInSeconds = Math.ceil((new Date(asset.callDetails[callDetailIndex].callEnd).getTime() - new Date(asset.callDetails[callDetailIndex].callBegin).getTime())/1000);
+
         // define and set callEndEvent
         let callEndEvent = {
             type: 'Call End',
@@ -615,6 +707,23 @@ class TelcoRoamingContract extends Contract {
         ctx.stub.setEvent('CallEndEvent-'+simPublicKey, Buffer.from(JSON.stringify(callEndEvent)));
     }
 
+    /**
+     *
+     * callPay
+     *
+     * This function calculates the charges for a particular call.
+     * If the sim has crossed overageLimits then the rate used is the overageRate otherwise it is the roamingRate.
+     * The callDuration is calculated and then multiplied by the rate to calculate the callCharges.
+     *
+     * @param ctx - the context of the transaction
+     * @param simPublicKey - the publicKey of the SubscriberSim
+     * @param callDetailIndex - the index number of the call in the list of calls for the sim
+     * @returns - nothing - but updates the SubscriberSim in the world state.
+     *
+     * Generates an event that indicates that callPay was successful and
+     * specifies the rate used for the call, the call duration and the call charges for this call.
+     */
+
     //TODO: probably should also include the sim number that is being called - but leaving that for other devs
     async callPay(ctx, simPublicKey, callDetailIndex){
         let exists = await this.assetExists(ctx, simPublicKey);
@@ -623,13 +732,14 @@ class TelcoRoamingContract extends Contract {
         }
         let buffer = await ctx.stub.getState(simPublicKey);
         let asset = JSON.parse(buffer.toString());
+
         //if overage then overageRate, else roamingRate.
-        let rate = asset.overageFlag === 'TRUE'?asset.overageRate:asset.roamingRate;
+        let rate = asset.overageFlag === 'true'?asset.overageRate:asset.roamingRate;
 
         let callDurationInSeconds = Math.ceil((new Date(asset.callDetails[callDetailIndex].callEnd).getTime() - new Date(asset.callDetails[callDetailIndex].callBegin).getTime())/1000);
         asset.callDetails[callDetailIndex].callCharges = (Math.ceil(callDurationInSeconds / 60) * rate).toFixed(2);
-        let sim = new SubscriberSim(simPublicKey, asset.msisdn, asset.address, asset.homeOperatorName, asset.roamingPartnerName, asset.isRoaming, asset.location, asset.latitude, asset.longitude, asset.roamingRate, asset.overageRate, asset.callDetails, asset.isValid, asset.overageThreshold, asset.allowOverage, asset.overageFlag);
-        await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(sim)));
+        await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(asset)));
+
         // define and set callPayEvent
         let callDurationMinutesPortion = Math.floor(callDurationInSeconds/60);
         let callDurationSecondsPortion = callDurationInSeconds - callDurationMinutesPortion*60;
@@ -668,8 +778,8 @@ class TelcoRoamingContract extends Contract {
     */
     async queryWithQueryString(ctx, queryString) {
 
-        console.log('query String');
-        console.log(JSON.stringify(queryString));
+        //console.log('query String');
+        //console.log(JSON.stringify(queryString));
 
         let resultsIterator = await ctx.stub.getQueryResult(queryString);
 
@@ -696,9 +806,9 @@ class TelcoRoamingContract extends Contract {
                 allResults.push(jsonRes);
             }
             if (res.done) {
-                console.log('end of data');
+                //console.log('end of data');
                 await resultsIterator.close();
-                console.info(allResults);
+                //console.info(allResults);
                 return allResults;
             }
         }

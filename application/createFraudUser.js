@@ -49,7 +49,7 @@ let sim = {
     address: 'United States',
     homeOperatorName: 'CSP_US',
     roamingPartnerName: '',
-    isRoaming: 'FALSE',
+    isRoaming: 'false',
     location: 'United States',
     latitude: '40.942746',
     longitude: '-74.91',
@@ -58,8 +58,8 @@ let sim = {
     callDetails: callDetails,
     isValid: '',
     overageThreshold: '2.00',
-    allowOverage: 'FALSE',
-    overageFlag: 'FALSE'
+    allowOverage: '',
+    overageFlag: 'false'
 };
 
 const gateway = new Gateway();

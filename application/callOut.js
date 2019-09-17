@@ -12,7 +12,7 @@
  * Assumptions: Ideally, a call would require the sim_id/msisdn to which the call is being made, but for simplicity we are ignoring that for now. Ideally, multiple calls can be made at the same time (using call holding), but for simplicity we are assuming that only 1 call can be made at a time.
  *
  * 1. call verifyUser - to authenticate the sim and check if the sim is reaching overage limits.
- * 2. call setOverageFlag - to update the overageFlags - allowOverage and overageFlag
+ * 2. call setOverageFlag - to update the allowOverage flag.
  * 3. call callOut - to make the call.
  *
  * At step 1, an error is thrown if the sim has isValid = Fraud, thereby preventing the sim from making a call.
@@ -130,7 +130,7 @@ async function main() {
 
             let overageFlag = JSON.parse(event.payload.toString()).nearingOverage;
             let allowOverage = JSON.parse(event.payload.toString()).allowOverage;
-            if(overageFlag === 'FALSE' || (overageFlag === 'TRUE' && allowOverage !== '')){
+            if(overageFlag === 'false' || (overageFlag === 'true' && allowOverage !== '')){
                 //either hasn't reached overage, or has reached overage and we have already asked if the user agrees witht he overage charges or not.
                 // get a transaction id object based on the current user assigned to fabric client
                 let tx_id = client.newTransactionID(true);
@@ -141,7 +141,7 @@ async function main() {
                     //targets: let default to the peer assigned to the client
                     chaincodeId: smartContractName,
                     fcn: fcn,
-                    args: [simPublicKey, overageFlag, allowOverage],
+                    args: [simPublicKey, allowOverage],
                     chainId: channelName,
                     txId: tx_id
                 };
@@ -235,7 +235,7 @@ async function main() {
                     });
                 });
             }
-            else{ //i.e if (overageFlag === 'TRUE' && allowOverage === '')
+            else{ //i.e if (overageFlag === 'true' && allowOverage === '')
                 //has reached overage and we have not asked if the user agrees with the overage charges or not.
                 (async () => {
                     const response = await prompts({
@@ -251,12 +251,12 @@ async function main() {
                     if(response.value === 'Yes'){
                         //call a function that sets the allowOverage to true
                         //and continue with callOut function
-                        allowOverage = 'TRUE';
+                        allowOverage = 'true';
                     }
                     else{
                         //call function that sets the allowOverage to false
                         //throw error as cannot go for callOut now
-                        allowOverage = 'FALSE';
+                        allowOverage = 'false';
                     }
                     // get a transaction id object based on the current user assigned to fabric client
                     let tx_id = client.newTransactionID(true);
@@ -267,7 +267,7 @@ async function main() {
                         //targets: let default to the peer assigned to the client
                         chaincodeId: smartContractName,
                         fcn: fcn,
-                        args: [simPublicKey, overageFlag, allowOverage],
+                        args: [simPublicKey, allowOverage],
                         chainId: channelName,
                         txId: tx_id
                     };

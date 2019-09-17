@@ -69,7 +69,7 @@ SubscriberSims.push({
     address: 'United States',
     homeOperatorName: 'CSP_US',
     roamingPartnerName: '',
-    isRoaming: 'FALSE',
+    isRoaming: 'false',
     location: 'United States',
     latitude: '40.942746',
     longitude: '-74.91',
@@ -79,7 +79,7 @@ SubscriberSims.push({
     isValid: '',
     overageThreshold: '2.00',
     allowOverage: '',
-    overageFlag: 'FALSE'
+    overageFlag: 'false'
 });
 
 SubscriberSims.push({
@@ -88,7 +88,7 @@ SubscriberSims.push({
     address: 'European Union',
     homeOperatorName: 'CSP_EU',
     roamingPartnerName: '',
-    isRoaming: 'FALSE',
+    isRoaming: 'false',
     location: 'European Union',
     latitude: '36.931',
     longitude: '-78.994838',
@@ -98,7 +98,7 @@ SubscriberSims.push({
     isValid: '',
     overageThreshold: '1.00',
     allowOverage: '',
-    overageFlag: 'FALSE'
+    overageFlag: 'false'
 });
 
 const gateway = new Gateway();
