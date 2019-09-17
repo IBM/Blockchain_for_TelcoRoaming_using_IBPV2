@@ -231,6 +231,7 @@ async function main() {
                     // send the transaction proposal to the peers
                     channel.sendTransactionProposal(request).then((results) => {
                         let proposalResponses = results[0];
+                        let proposal = results[1];
                         let isProposalGood = false;
                         if (proposalResponses && proposalResponses[0].response && proposalResponses[0].response.status === 200) {
                             isProposalGood = true;
@@ -243,6 +244,14 @@ async function main() {
                                 'Successfully sent Proposal and received ProposalResponse: Status - %s, message - "%s"',
                                 proposalResponses[0].response.status, proposalResponses[0].response.message));
 
+                            // build up the request for the orderer to have the transaction committed
+                            let request = {
+                                proposalResponses: proposalResponses,
+                                proposal: proposal
+                            };
+
+                            let sendPromise = channel.sendTransaction(request);
+                            promises.push(sendPromise); //we want the send transaction first, so that we know where to check status
 
                             console.log(`Created Promise - ${fcn} for ` + sim.publicKey);
                         }

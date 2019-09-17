@@ -148,7 +148,7 @@ class TelcoRoamingContract extends Contract {
         }
         console.log(name, ' does not exist. Creating...');
 
-        let newCSP = await new CSP(name, region, overageRate, roamingRate);
+        let newCSP = new CSP(name, region, overageRate, roamingRate);
         await ctx.stub.putState(name, Buffer.from(JSON.stringify(newCSP)));
         console.log('returning from ', name);
 
@@ -208,8 +208,7 @@ class TelcoRoamingContract extends Contract {
                 throw new Error(`The roamingPartner CSP ${roamingPartnerName} does not exist`);
             }
         }
-        let sim = await new SubscriberSim(publicKey, msisdn, address, homeOperatorName, roamingPartnerName,
-            isRoaming, location, latitude, longitude, roamingRate, overageRate, callDetails, isValid, overageThreshold, allowOverage, overageFlag);
+        let sim = new SubscriberSim(publicKey, msisdn, address, homeOperatorName, roamingPartnerName, isRoaming, location, latitude, longitude, roamingRate, overageRate, callDetails, isValid, overageThreshold, allowOverage, overageFlag);
         await ctx.stub.putState(publicKey, Buffer.from(JSON.stringify(sim)));
 
         // define and set createCSPEvent
@@ -226,7 +225,7 @@ class TelcoRoamingContract extends Contract {
             throw new Error(`The CSP ${name} does not exist`);
         }
 
-        let csp = await new CSP(name, region, overageRate, roamingRate);
+        let csp = new CSP(name, region, overageRate, roamingRate);
         await ctx.stub.putState(name, Buffer.from(JSON.stringify(csp)));
     }
 
@@ -252,8 +251,7 @@ class TelcoRoamingContract extends Contract {
             }
         }
 
-        let sim = await new SubscriberSim(publicKey, msisdn, address, homeOperatorName, roamingPartnerName,
-            isRoaming, location, latitude, longitude, roamingRate, overageRate, callDetails, isValid, overageThreshold, allowOverage, overageFlag);
+        let sim = new SubscriberSim(publicKey, msisdn, address, homeOperatorName, roamingPartnerName, isRoaming, location, latitude, longitude, roamingRate, overageRate, callDetails, isValid, overageThreshold, allowOverage, overageFlag);
         await ctx.stub.putState(publicKey, Buffer.from(JSON.stringify(sim)));
     }
 
@@ -287,8 +285,7 @@ class TelcoRoamingContract extends Contract {
         }
         let buffer = await ctx.stub.getState(simPublicKey);
         let asset = JSON.parse(buffer.toString());
-        let sim = await new SubscriberSim(simPublicKey, asset.msisdn, asset.address, asset.homeOperatorName, asset.roamingPartnerName,
-            asset.isRoaming, newLocation, asset.latitude, asset.longitude, asset.roamingRate, asset.overageRate, asset.callDetails, asset.isValid, asset.overageThreshold, asset.allowOverage, asset.overageFlag);
+        let sim = new SubscriberSim(simPublicKey, asset.msisdn, asset.address, asset.homeOperatorName, asset.roamingPartnerName, asset.isRoaming, newLocation, asset.latitude, asset.longitude, asset.roamingRate, asset.overageRate, asset.callDetails, asset.isValid, asset.overageThreshold, asset.allowOverage, asset.overageFlag);
         await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(sim)));
         buffer = await ctx.stub.getState(simPublicKey);
         asset = JSON.parse(buffer.toString());
@@ -443,8 +440,7 @@ class TelcoRoamingContract extends Contract {
             sim.isRoaming = 'FALSE';
             sim.roamingRate = '';
             await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(sim)));*/
-            newSim = await new SubscriberSim(sim.publicKey, sim.msisdn, sim.address, sim.homeOperatorName, '',
-                'FALSE', sim.location, sim.latitude, sim.longitude, '', '', sim.callDetails, sim.isValid, sim.overageThreshold, sim.allowOverage, sim.overageFlag);
+            newSim = new SubscriberSim(sim.publicKey, sim.msisdn, sim.address, sim.homeOperatorName, '', 'FALSE', sim.location, sim.latitude, sim.longitude, '', '', sim.callDetails, sim.isValid, sim.overageThreshold, sim.allowOverage, sim.overageFlag);
         }
         else if (sim.homeOperatorName !== RPname){
             let exists = await this.assetExists(ctx, RPname);
@@ -453,8 +449,7 @@ class TelcoRoamingContract extends Contract {
             }
             let buffer = await ctx.stub.getState(RPname);
             let RP = JSON.parse(buffer.toString());
-            newSim = await new SubscriberSim(sim.publicKey, sim.msisdn, sim.address, sim.homeOperatorName, RP.name,
-                'TRUE', sim.location, sim.latitude, sim.longitude, RP.roamingRate, RP.overageRate, sim.callDetails, sim.isValid, sim.overageThreshold, sim.allowOverage, sim.overageFlag);
+            newSim = new SubscriberSim(sim.publicKey, sim.msisdn, sim.address, sim.homeOperatorName, RP.name, 'TRUE', sim.location, sim.latitude, sim.longitude, RP.roamingRate, RP.overageRate, sim.callDetails, sim.isValid, sim.overageThreshold, sim.allowOverage, sim.overageFlag);
         }
         await ctx.stub.putState(sim.publicKey, Buffer.from(JSON.stringify(newSim)));
         buffer = await ctx.stub.getState(sim.publicKey);
@@ -605,8 +600,7 @@ class TelcoRoamingContract extends Contract {
             throw new Error(`No ongoing call for the user ${simPublicKey} was found. Can not continue with callEnd process.`);
         }
         asset.callDetails[callDetailIndex].callEnd = new Date();
-        let sim = await new SubscriberSim(simPublicKey, asset.msisdn, asset.address, asset.homeOperatorName, asset.roamingPartnerName,
-            asset.isRoaming, asset.location, asset.latitude, asset.longitude, asset.roamingRate, asset.overageRate, asset.callDetails, asset.isValid, asset.overageThreshold, asset.allowOverage, asset.overageFlag);
+        let sim = new SubscriberSim(simPublicKey, asset.msisdn, asset.address, asset.homeOperatorName, asset.roamingPartnerName, asset.isRoaming, asset.location, asset.latitude, asset.longitude, asset.roamingRate, asset.overageRate, asset.callDetails, asset.isValid, asset.overageThreshold, asset.allowOverage, asset.overageFlag);
         await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(sim)));
         let callDurationInSeconds = Math.ceil((new Date(asset.callDetails[callDetailIndex].callEnd).getTime() - new Date(asset.callDetails[callDetailIndex].callBegin).getTime())/1000);
         // define and set callEndEvent
@@ -634,8 +628,7 @@ class TelcoRoamingContract extends Contract {
 
         let callDurationInSeconds = Math.ceil((new Date(asset.callDetails[callDetailIndex].callEnd).getTime() - new Date(asset.callDetails[callDetailIndex].callBegin).getTime())/1000);
         asset.callDetails[callDetailIndex].callCharges = (Math.ceil(callDurationInSeconds / 60) * rate).toFixed(2);
-        let sim = await new SubscriberSim(simPublicKey, asset.msisdn, asset.address, asset.homeOperatorName, asset.roamingPartnerName,
-            asset.isRoaming, asset.location, asset.latitude, asset.longitude, asset.roamingRate, asset.overageRate, asset.callDetails, asset.isValid, asset.overageThreshold, asset.allowOverage, asset.overageFlag);
+        let sim = new SubscriberSim(simPublicKey, asset.msisdn, asset.address, asset.homeOperatorName, asset.roamingPartnerName, asset.isRoaming, asset.location, asset.latitude, asset.longitude, asset.roamingRate, asset.overageRate, asset.callDetails, asset.isValid, asset.overageThreshold, asset.allowOverage, asset.overageFlag);
         await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(sim)));
         // define and set callPayEvent
         let callDurationMinutesPortion = Math.floor(callDurationInSeconds/60);
