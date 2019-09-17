@@ -67,6 +67,8 @@ async function main() {
 
     // A gateway defines the peers used to access Fabric networks
     await gateway.connect(ccp, { wallet, identity: appAdmin , discovery: {enabled: gatewayDiscoveryEnabled, asLocalhost:gatewayDiscoveryAsLocalhost }});
+    // eslint-disable-next-line no-unused-vars
+    const network = await gateway.getNetwork(channelName);
     const client = gateway.getClient();
     const channel = client.getChannel(channelName);
 

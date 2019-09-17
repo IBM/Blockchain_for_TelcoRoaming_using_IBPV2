@@ -113,6 +113,8 @@ process.on('unhandledRejection', error => {
 async function main() {
 
     await gateway.connect(ccp, { wallet, identity: appAdmin , discovery: {enabled: gatewayDiscoveryEnabled, asLocalhost:gatewayDiscoveryAsLocalhost }});
+    // eslint-disable-next-line no-unused-vars
+    const network = await gateway.getNetwork(channelName);
     const client = gateway.getClient();
     const channel = client.getChannel(channelName);
 
