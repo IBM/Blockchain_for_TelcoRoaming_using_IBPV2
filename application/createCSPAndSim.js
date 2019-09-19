@@ -114,7 +114,6 @@ async function main() {
 
     await gateway.connect(ccp, { wallet, identity: appAdmin , discovery: {enabled: gatewayDiscoveryEnabled, asLocalhost:gatewayDiscoveryAsLocalhost }});
     
-    console.log(gatewayDiscoveryEnabled +"" + gatewayDiscoveryAsLocalhost);
     // eslint-disable-next-line no-unused-vars
     const network = await gateway.getNetwork(channelName);
     const client = gateway.getClient();
@@ -135,10 +134,8 @@ async function main() {
         chainId: channelName,
         txId: tx_id
     };
-    console.log("Created request");
     // send the transaction proposal to the peers
     channel.sendTransactionProposal(request).then((results) => {
-        console.log("sent proposal");
         let proposalResponses = results[0];
         let proposal = results[1];
         let isProposalGood = false;
