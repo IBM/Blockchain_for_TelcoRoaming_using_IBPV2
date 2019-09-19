@@ -9,9 +9,12 @@ This business network includes:
 
 **CSPs:** or Communication Service Providers which can act as either the `Home Operator` of the SubscriberSim or the `Roaming Partner` of the SubscriberSim.
 
-![Business Network](images/bc_roaming_archi.png)
+<p align="center">
+  <img src="docs/doc-images/bc_roaming_archi.png" alt="Business network">
+</p>
 
-There are four scenarios covered in thhis code pattern:
+
+There are four scenarios covered in this code pattern:
 
 1. Roaming Subscriber Identification:<br/>
 A SubscriberSim moves to a new location that is not a part of its home network. It is discovered as present in the *Roaming Partner's network* using the `discovery` function, authenticated as a Valid user using the `authentication` function and its calling rates are updated using the `updateRate` function.
@@ -25,19 +28,27 @@ A fraudulent SubscriberSim (with the same MSISDN as an existing SubscriberSim) i
 4. Overage Management:<br/>
 A roaming subscriber intiates a call. `callout` function is executed. The smart contract recognizes that the subscriber is potentially reaching the overage threshold. The operator notifies the subscriber about the reaching the overage threshold and specifies the potential tariff changes. The subscriber is asked to accept or deny the new charges, the subscriber's response is recorded in the ledger and future calls (including this one) are either initiated or denied based on whether the subscriber accepted or denied the overage charges. If the roaming subscriber accepted the charges, then all the future calls (including this one) will make use of the overageRate in order to calculate call charges instead of the roamingRate.
 
+
+When you have completed this code pattern, you will understand how to:
+
+1. Package a blockchain smart contract using the IBM Blockchain Platform Extension for VS Code.
+2. Set up a Hyperledger Fabric network on IBM Blockchain Platform.
+3. Install and instantiate a smart contract package through IBM Blockchain Platform.
+4. Test the blockchain network by using NodeJS scripts that employ the Hyperledger Fabric SDK to interact with the deployed network by issuing transactions.
+
 Audience level : Intermediate Developers
 
 # Architecture flow
 
 <p align="center">
-  <img src="docs/doc-images/arch-diagram.png">
+  <img src="docs/doc-images/arch-diagram.png" alt="Architecture diagram">
 </p>
 
 1. The Blockchain Operator clones the GitHub repo to obtain the **Blockchain for Telco Roaming using IBPV2** smart contract.
 2. The Blockchain Operator uses the IBM Blockchain Platform Extension for VS Code to package the smart contract.
 3. The Blockchain Operator sets up and launches the IBM Blockchain Platform 2.0 service.
 4. The IBM Blockchain Platform 2.0 enables the creation of a Hyperledger Fabric network onto a IBM Kubernetes Service, enabling installation and instantiation of the Blockchain for Telco Roaming using IBPV2 smart contract on the network.
-5. The Blockchain Operator can interact with the smart contract and perform functions such as moveSim, callOut and callEnd which in turn use the Fabric SDK to interact with the deployed network on IBM Blockchain Platform 2.0 and issue transactions.
+5. The Blockchain Operator can interact with the smart contract and run NodeJS scripts such as moveSim.js, callOut.js and callEnd.js which in turn use the Fabric SDK to interact with the deployed network on IBM Blockchain Platform 2.0 and issue transactions.
 
 
 # Included components
