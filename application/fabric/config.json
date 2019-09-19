@@ -1,12 +1,12 @@
 {
     "channel_name": "mychannel",
     "smart_contract_name": "telco-roaming-contract",
-    "connection_file": "mychannel_telcoroaming_profile.json",
+    "connection_file": "mychannel_telco-roaming-contract_profile.json",
     "appAdmin": "app-admin",
     "appAdminSecret": "app-adminpw",
     "orgMSPID": "Org1MSP",
-    "caName": "184.172.229.220:31844",
-    "peerName": "184.172.229.220:30884",
-    "ordererName": "184.172.229.220:32685",
+    "caName": "173.193.82.121:31483",
+    "peerName": "173.193.82.121:30162",
+    "ordererName": "173.193.82.121:31647",
     "gatewayDiscovery": { "enabled": true, "asLocalhost": false }
  }

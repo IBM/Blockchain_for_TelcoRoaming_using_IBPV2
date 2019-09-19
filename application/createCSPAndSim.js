@@ -40,7 +40,7 @@ let appAdmin = config.appAdmin;
 let peerAddr = config.peerName;
 
 let gatewayDiscoveryEnabled = 'enabled' in config.gatewayDiscovery?config.gatewayDiscovery.enabled:true;
-let gatewayDiscoveryAsLocalhost = 'asLocalHost' in config.gatewayDiscovery?config.gatewayDiscovery.asLocalhost:true;
+let gatewayDiscoveryAsLocalhost = 'asLocalhost' in config.gatewayDiscovery?config.gatewayDiscovery.asLocalhost:true;
 
 const ccpPath = path.join(configDirectory, connection_file);
 const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
@@ -113,6 +113,8 @@ process.on('unhandledRejection', error => {
 async function main() {
 
     await gateway.connect(ccp, { wallet, identity: appAdmin , discovery: {enabled: gatewayDiscoveryEnabled, asLocalhost:gatewayDiscoveryAsLocalhost }});
+    
+    console.log(gatewayDiscoveryEnabled +"" + gatewayDiscoveryAsLocalhost);
     // eslint-disable-next-line no-unused-vars
     const network = await gateway.getNetwork(channelName);
     const client = gateway.getClient();
@@ -133,8 +135,10 @@ async function main() {
         chainId: channelName,
         txId: tx_id
     };
+    console.log("Created request");
     // send the transaction proposal to the peers
     channel.sendTransactionProposal(request).then((results) => {
+        console.log("sent proposal");
         let proposalResponses = results[0];
         let proposal = results[1];
         let isProposalGood = false;

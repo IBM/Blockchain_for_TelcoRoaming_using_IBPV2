@@ -35,7 +35,7 @@ let appAdmin = config.appAdmin;
 let peerAddr = config.peerName;
 
 let gatewayDiscoveryEnabled = 'enabled' in config.gatewayDiscovery?config.gatewayDiscovery.enabled:true;
-let gatewayDiscoveryAsLocalhost = 'asLocalHost' in config.gatewayDiscovery?config.gatewayDiscovery.asLocalhost:true;
+let gatewayDiscoveryAsLocalhost = 'asLocalhost' in config.gatewayDiscovery?config.gatewayDiscovery.asLocalhost:true;
 
 const ccpPath = path.join(configDirectory, connection_file);
 const ccpJSON = fs.readFileSync(ccpPath, 'utf8');

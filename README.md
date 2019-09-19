@@ -367,7 +367,7 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
 <br>
 
 
-#### Update application connection
+#### Update application connection profile
   - Copy the connection profile you downloaded into the [fabric folder](web-app/controller/restapi/features/fabric).
   - Update the [config.json](web-app/controller/restapi/features/fabric/config.json) file with:
     - The connection json file name you downloaded.
@@ -382,7 +382,7 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
  {
     "channel_name": "mychannel",
     "smart_contract_name": "telco-roaming-contract",
-    "connection_file": "mychannel_telcoroaming_profile.json",
+    "connection_file": "mychannel_telco-roaming-contract_profile.json",
     "appAdmin": "app-admin",
     "appAdminSecret": "app-adminpw",
     "orgMSPID": "Org1MSP",
