@@ -48,7 +48,7 @@ Audience level : Intermediate Developers
 2. The Blockchain Operator uses the IBM Blockchain Platform Extension for VS Code to package the smart contract.
 3. The Blockchain Operator sets up and launches the IBM Blockchain Platform 2.0 service.
 4. The IBM Blockchain Platform 2.0 enables the creation of a Hyperledger Fabric network onto a IBM Kubernetes Service, enabling installation and instantiation of the Blockchain for Telco Roaming using IBPV2 smart contract on the network.
-5. The Blockchain Operator can interact with the smart contract and run NodeJS scripts such as moveSim.js, callOut.js and callEnd.js which in turn use the Fabric SDK to interact with the deployed network on IBM Blockchain Platform 2.0 and issue transactions.
+5. The User can interact with the smart contract and run NodeJS scripts such as moveSim.js, callOut.js and callEnd.js which in turn use the Fabric SDK to interact with the deployed network on IBM Blockchain Platform 2.0 and issue transactions.
 
 
 # Included components
@@ -425,48 +425,361 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
   node createCSPAndSim.js
   ```
   
+  **Output:**
+  
+  ```bash
+  Sending transaction proposal for createCSP with transaction id 8cea5159d5f4aff59189469b38c2ec4a6d310277e2af3e643453ed028ac6d050
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - createCSP for CSP_US
+  Found CreateCSPEvent
+  Sending transaction proposal for createCSP with transaction id 28cb8b7b9fe2cc86140c2578541394e02a695ca8a4504361e856e4bd2edce462
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - createCSP for CSP_EU
+  Found CreateCSPEvent
+  Sending transaction proposal for createSubscriberSim with transaction id 930be8c845bdf45c3e57e100fcbc9d8719015c28456f05aebc5e5203b447517d
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - createSubscriberSim for sim1
+  Found CreateSubscriberSimEvent
+  Sending transaction proposal for createSubscriberSim with transaction id fac80e05e6caad261a6e15129c0a980adc4ef3c008417d7bc9679dc8a8bb1e8a
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - createSubscriberSim for sim2
+  Found CreateSubscriberSimEvent
+  Sending transaction proposal for authentication with transaction id 956a9bc0f4934cbfedf0c1501838aa0b3eee3e32dc9744735accb9e5cf2c1ca6
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - authentication for sim1
+  Found AuthenticationEvent
+  Sending transaction proposal for authentication with transaction id bbc6a04ff4fbfe47d8636d34775fc3cff17169d92211e69446a7d755af17bba1
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - authentication for sim2
+  Found AuthenticationEvent
+  ```
+  
 2. Move sims to new locations outside their Home Operator's coverage areas
 
+  **Move sim1 to European Union**
+  
   ```bash
   node moveSim.js sim1 European\ Union
   ```
   
+  **Output**
+  
+  ```bash
+  Sending transaction proposal for moveSim with transaction id 873447b7456e7521b98d691487221d8121634253ad39abeb3a6b82c0b9e56403
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - moveSim for sim1
+  Found MoveEvent
+  Sending transaction proposal for discovery with transaction id 135fcaad963091208778f63ff353dd37a71edada088afbeb66d9795fc0dcfd5a
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - discovery for sim1
+  Found discovery event
+  Sending transaction proposal for authentication with transaction id 5ed86939f03270d38abaa0e2586444485c902a235cb70a8634a2e11ebb802fe9
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - authentication for sim1
+  Found authentication event
+  Sending transaction proposal for updateRate with transaction id 1205dc1019ceecc39a844bf68dcc7b2fba88bc0c7e3441a4445b12c08d8dc9ce
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - updateRate for sim1
+  Found updateRate event
+  ```
+  
+  **Move sim2 to United States**
+  
   ```bash
   node moveSim.js sim2 United\ States
+  ```
+  
+  **Output**
+  
+  ```bash
+  Sending transaction proposal for moveSim with transaction id 82431f50b5534f51ae8a5d4a7f32709e3ca107c57f57f8eedc1149fcdbe1f627
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - moveSim for sim2
+  Found MoveEvent
+  Sending transaction proposal for discovery with transaction id 670e70c77c8a19bfc93bd4ceb3a8abe094ce698c7d8c82c7f70b0cba756fdbd7
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - discovery for sim2
+  Found discovery event
+  Sending transaction proposal for authentication with transaction id 07d8f123d49ab8da1f9418e72c343e3fa71a39ddb635a0c16ec38b2281cdf88b
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - authentication for sim2
+  Found authentication event
+  Sending transaction proposal for updateRate with transaction id 0efbb2358510212c9d95c966a65acbb848c37848c04616fa974210682d9640e7
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - updateRate for sim2
+  Found updateRate event
   ```
 
 3. Initiate and end calls. Also simulate overage scenario.
 
+Run callOut.js for sim1 to initiate a call. Run callEnd.js for sim1 to end the call. Repeat these until the overage limit is reached. Two quick calls should be enough -> callOut, callEnd, callOut, callEnd. Once the overage limit is reached, the next callOut.js will cause a prompt to appear on the terminal which indicates that the sim has reached the overage limit and all future calls (including this one) will be charged at a higher rate. Select "Yes" to accept the charges and the call will be initiated. The user's response of "Yes" will be saved in the ledger (as sim1.allowOverage="true") and future runs of callOut will simply initiate calls with the higher charges.
+We will repeat the same process for sim2, however, once the overage limit is reached and the prompt is displayed, we will select "No" in order to deny the charges. This causes the user's response of "No" to be saved in the ledger as sim2.allowOverage=false, and as a result, this as well as all future calls will not be initiated. As in case of sim1, since the response has been stored in the ledger, the prompt will not be displayed the next time callOut.js is run.
+
+  **Perform callOut and callEnd on sim1 until overageLimit is reached**
+  
+  
   ```bash
   node callOut.js sim1
+  ```
+  
+  **Output**
+  
+  ```bash
+  Sending transaction proposal for verifyUser with transaction id e5544bdc43cf06c731378ac33f27c586a4581628cbb38bb07aa36f3d486286e8
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - verifyUser for sim1
+  Found VerifyUserEvent
+  Sending transaction proposal for setOverageFlag with transaction id ea14f1e50a8789b02b8b6ce7d9c7fcbc02e7ccc8f38e5db04eea3b234ab477fd
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - setOverageFlag for sim1
+  Found SetOverageFlagEvent
+  Sending transaction proposal for callOut with transaction id e51bd3fbcfd0de69a619754a54353a203f15ba1b5276bd33b33e9c489b8d8add
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - callOut for sim1
+  Found CallOutEvent
   ```
   
   ```bash
   node callEnd.js sim1
   ```
   
+  **Output**
+  
+  ```bash
+  Sending transaction proposal for callEnd with transaction id d3cfb96e20e6a3a689202bb9169e67e0df65b319c30c2504bf7352139e91cc3e
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - callEnd for sim1
+  Found CallEndEvent
+  Sending transaction proposal for callPay with transaction id 48eda03372377f1a9538ee07b02e7c9866119a4817e34479a3e33929bb2e8c6d
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - callPay for sim1
+  Found CallPayEvent
+  ```
+  
+  **Perform callOut and callEnd on sim1 after overageLimit is reached**
+  
+  ```bash
+  node callOut.js sim1
+  ```
+  
+  **Output**
+  
+  ```bash
+  Sending transaction proposal for verifyUser with transaction id 8cc7d67a2a861df7165ef6be2b1c70d3ba23b4093a61967d9b472a71f438841b
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - verifyUser for sim1
+  Found VerifyUserEvent
+  ✔ The user is nearing overage limits. This call and all futher calls may incur additional charges. Do you accept? › Yes
+  Sending transaction proposal for setOverageFlag with transaction id 717c069325f4223b0ab4f80accfcd41b0c0048d53feacbadb6242ffbbd57c8be
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - setOverageFlag for sim1
+  Found SetOverageFlagEvent
+  Sending transaction proposal for callOut with transaction id 2bca151fc57623cb3dddca02a794484ca9a9dbe26bb2bb5fa6ef34bced65d5db
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - callOut for sim1
+  Found CallOutEvent
+  ```
+  
+  ```bash
+  node callEnd.js sim1
+  ```
+  
+  **Output**
+  
+  ```bash
+  Sending transaction proposal for callEnd with transaction id 9ce6f43d937e5c28e30173e2b42734a30bd1492ff9143f7bc6d902aab9e5d8a5
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - callEnd for sim1
+  Found CallEndEvent
+  Sending transaction proposal for callPay with transaction id 8ffa9b330e0473cdaac2fe2c7a425eeb8bfc10c906390da80d2b0e70bb293950
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - callPay for sim1
+  Found CallPayEvent
+  ```
+  
+  **Perform callOut and callEnd on sim2 until overageLimit is reached**
+  
   ```bash
   node callOut.js sim2
+  ```
+  
+  **Output**
+  
+  ```bash
+  Sending transaction proposal for verifyUser with transaction id e4648aed8e5a0e11820b3b5332cefc41e112cc043b3bfb51bd258ff2c461dbe9
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - verifyUser for sim2
+  Found VerifyUserEvent
+  Sending transaction proposal for setOverageFlag with transaction id f22859c45c8cf8154c2a4da63ff7b2a27fb0bc4750e23ca77363159defc15798
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - setOverageFlag for sim2
+  Found SetOverageFlagEvent
+  Sending transaction proposal for callOut with transaction id 61ea3c5b5615b86ce8d9889cb80be1d1b66b2a2dbe6df0c209fc09f94bbc8ea9
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - callOut for sim2
+  Found CallOutEvent
   ```
   
   ```bash
   node callEnd.js sim2
   ```
 
-4. Simulate fraud user scenario
+  **Output**
+  
+  ```bash
+  Sending transaction proposal for callEnd with transaction id b2a03c620d5a8baa5bf633a1f475a1e445a8acf4122b1b8b6c2d9e538362be63
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - callEnd for sim2
+  Found CallEndEvent
+  Sending transaction proposal for callPay with transaction id b1d97d2563f491c915ff04f45622637687728e101936fc2aef2120e305141d9c
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - callPay for sim2
+  Found CallPayEvent
+  ```
+  
+  **Perform callOut on sim2 after overageLimit is reached**
+  
+  ```bash
+  node callOut.js sim2
+  ```
+  
+  **Output**
+  
+  ```bash
+  Sending transaction proposal for verifyUser with transaction id ad4975ea88faf0e1ebe3482a1f0a0a215c62baeed978e938383269bf3f2a8c85
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - verifyUser for sim2
+  Found VerifyUserEvent
+  ✔ The user is nearing overage limits. This call and all futher calls may incur additional charges. Do you accept? › No
+  Sending transaction proposal for setOverageFlag with transaction id 00d2a3a40c0cebf45f4b5962a954ba919120a5f48a48360bccefaa98af01fe11
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - setOverageFlag for sim2
+  Found SetOverageFlagEvent
+  Sending transaction proposal for callOut with transaction id 4f49a2e452e31744b034b84832632b70cdd01542345ceb07417d68c66238dd5d
+  2019-09-19T18:51:02.923Z - warn: [DiscoveryEndorsementHandler]: _build_endorse_group_member >> G0:0 - endorsement failed - Error: transaction returned with failure: Error: No further calls will be allowed as the user sim2 has reached the overage threshold and has denied the overage charges.
+  An unhandled rejection was found -  Endorsement has failed
+  ```
+  
+  ```bash
+  node callOut.js sim2
+  ```
+  
+  **Output**
+  
+  ```bash
+  Sending transaction proposal for verifyUser with transaction id ceb8b68d5966f4158c1f39b07536e3a62b82332f1472eac18ebbdb52ec72b22e
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - verifyUser for sim2
+  Found VerifyUserEvent
+  Sending transaction proposal for setOverageFlag with transaction id 7c769435277ae2a055cd205730bae03bcdf07515187dd927d92ea89974e5b6d0
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - setOverageFlag for sim2
+  Found SetOverageFlagEvent
+  Sending transaction proposal for callOut with transaction id 9f2ab913736337c23ac65baaaa3844416b66e6a08feafe3ce8917db8b176a70e
+  2019-09-19T18:51:15.519Z - warn: [DiscoveryEndorsementHandler]: _build_endorse_group_member >> G0:0 - endorsement failed - Error: transaction returned with failure: Error: No further calls will be allowed as the user sim2 has reached the overage threshold and has denied the overage charges.
+  An unhandled rejection was found -  Endorsement has failed
+  ```
+  
+4. Simulate fraud user scenario.
+
+  **Create fraud user**
 
   ```bash
   node createFraudUser.js
   ```
   
+  **Output**
+  
+  ```bash
+  Sending transaction proposal for createSubscriberSim with transaction id 18a2b40e4445f12d5b1b77ff92d3ad3b166c3ca9e0679d3d9206e1968e27c27c
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - createSubscriberSim for sim3
+  Found CreateSubscriberSimEvent
+  Sending transaction proposal for authentication with transaction id 12693458eeee989a74311b95be0df598a33f77f89ae39964802982b778733654
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - authentication for sim3
+  Found AuthenticationEvent
+  ```
+  
+  **Move fraud user to European Union**
+  
   ```bash
   node moveSim.js sim3 European\ Union
   ```
+  
+  **Output**
+  
+  ```bash
+  Sending transaction proposal for moveSim with transaction id 1fde8df1d120c9830f1f90da2a35772e30659fa91beb90657865530a55df4d6f
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - moveSim for sim3
+  Found MoveEvent
+  Sending transaction proposal for discovery with transaction id abdccf82b45d31bdf917a15c894f809b75db1a77292ee3915b07f71371c8e524
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - discovery for sim3
+  Found discovery event
+  Sending transaction proposal for authentication with transaction id 7995fa4737684f9623649327aacc4ec62030084d7777f7596bf0e1162d4d0326
+  Transaction proposal was good
+  Successfully sent Proposal and received ProposalResponse: Status - 200, message - ""
+  Created Promise - authentication for sim3
+  Found authentication event
+  Sending transaction proposal for updateRate with transaction id eda9da745eed8c812633cd1ed726d0a4566b1e44088da1699e6991702ad5b887
+  2019-09-19T18:44:05.356Z - warn: [DiscoveryEndorsementHandler]: _build_endorse_group_member >> G0:0 - endorsement failed - Error: transaction returned with failure: Error: This user sim3 has been marked as fraudulent because the msisdn specified by this user is already in use. No calls can be made by this user.
+  An unhandled rejection was found -  Endorsement has failed
+  ```
+  
+  **Initiate a call for fraud user**
   
   ```bash
   node callOut.js sim3
   ```
 
+  **Output**
+  
+  ```bash
+  Sending transaction proposal for verifyUser with transaction id bb93d56cad036df8155f040c5c0791b7f08b3c68bf0ad782977369d420f23392
+  2019-09-19T18:44:24.102Z - warn: [DiscoveryEndorsementHandler]: _build_endorse_group_member >> G0:0 - endorsement failed - Error: transaction returned with failure: Error: This user sim3 has been marked as fraudulent because the msisdn specified by this user is already in use. No calls can be made by this user.
+  An unhandled rejection was found -  Endorsement has failed
+  ```
+  
+  
 # Links
 * [Hyperledger Fabric Docs](http://hyperledger-fabric.readthedocs.io/en/latest/)
 * [IBM Code Patterns for Blockchain](https://developer.ibm.com/patterns/category/blockchain/)

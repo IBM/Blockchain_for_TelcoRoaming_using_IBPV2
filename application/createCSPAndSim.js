@@ -15,7 +15,7 @@
  * 6. call authentication to authenticate sim2
  *
  * Should successfully complete without errors and the ledger should contain the 2 CSPs and the 2 SubscriberSims.
- * Both the SubscriberSims should have isValif = 'Active'
+ * Both the SubscriberSims should have isValid = 'Active'
  */
 
 let util = require('util');
