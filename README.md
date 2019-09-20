@@ -164,10 +164,22 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
 </p>
 <br>
 
+#### Associate the peer organization CA admin identity
+  - In the Nodes tab, select the <b>Org1 CA</b> once it is running (indicated by the green box in the tile).
+  - Click <b>Associate identity</b> on the CA overview panel.
+  - On the side panel, select <b>Enroll ID</b>. 
+  - Provide an <b>Enroll ID</b> of `admin` and an <b>Enroll secret</b> of `adminpw`. Use the default value of `Org1 CA Identity` for the <b>Identity display name</b>.
+  - Click <b>Associate identity</b> to add the identity into your wallet and associate the admin identity with the <b>Org1 CA</b>.
 
-#### Use peer organization CA to register identities
-  - Select the <b>Org1 CA</b> Certificate Authority that we created.
-  - First, we will register an admin for our organization "org1". Click on the <b>Register User</b> button. Give an <b>Enroll ID</b> of `org1admin`, and <b>Enroll Secret</b> of `org1adminpw`. Set the <b>Type</b> for this identity as `client`. We can specify to <b>Use root affiliation</b> or uncheck this field and select from any of the affiliated organizations from the drop-down list. We will leave the <b>Maximum enrollments</b> field blank. Click <b>Next</b>.
+<br>
+<p align="center">
+  <img src="docs/doc-gifs/org1-ca-admin-identity.gif">
+</p>
+<br>
+
+#### Use peer organization CA to register the peer and org1 admin identities
+  - Select the <b>Org1 CA</b> Certificate Authority and ensure the `admin` identity that was created for the CA is visible in the table.
+  - We will register an admin for our organization "org1". Click on the <b>Register User</b> button. Give an <b>Enroll ID</b> of `org1admin`, and <b>Enroll Secret</b> of `org1adminpw`. Set the <b>Type</b> for this identity as `client`. We can specify to <b>Use root affiliation</b> or uncheck this field and select from any of the affiliated organizations from the drop-down list. We will leave the <b>Maximum enrollments</b> field blank. Click <b>Next</b>.
   - We will not be adding any attributes to this user. Click <b>Register user</b>.
   - We will repeat the process to create an identity of the peer. Click on the <b>Register User</b> button. Give an <b>Enroll ID</b> of `peer1`, and <b>Enroll Secret</b> of `peer1pw`. Set the <b>Type</b> for this identity as `peer`. We can specify to <b>Use root affiliation</b> or uncheck this field and select from any of the affiliated organizations from the drop-down list. Click <b>Next</b>.
   - We will not be adding any attributes to this user. Click <b>Register user</b>.
@@ -222,10 +234,22 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
 </p>
 <br>
 
+#### Associate the orderer organization CA admin identity
+  - In the Nodes tab, select the <b>Orderer CA</b> once it is running (indicated by the green box in the tile).
+  - Click <b>Associate identity</b> on the CA overview panel.
+  - On the side panel, select <b>Enroll ID</b>. 
+  - Provide an <b>Enroll ID</b> of `admin` and an <b>Enroll secret</b> of `adminpw`. Use the default value of `Orderer CA Identity` for the <b>Identity display name</b>.
+  - Click <b>Associate identity</b> to add the identity into your wallet and associate the admin identity with the <b>Orderer CA</b>.
+
+<br>
+<p align="center">
+  <img src="docs/doc-gifs/orderer-ca-admin-identity.gif">
+</p>
+<br>
 
 #### Use orderer organization CA to register orderer and orderer admin identities
-  - Select the <b>Orderer CA</b> Certificate Authority that we created.
-  - First, we will register an admin for the "orderer" organization. Click on the <b>Register User</b> button. Give an <b>Enroll ID</b> of `ordereradmin`, and <b>Enroll Secret</b> of `ordereradminpw`. Set the <b>Type</b> for this identity as `client`. We can specify to <b>Use root affiliation</b> or uncheck this field and select from any of the affiliated organizations from the drop-down list. We will leave the <b>Maximum enrollments</b> field blank. Click <b>Next</b>.
+  - Select the <b>Orderer CA</b> Certificate Authority and ensure the `admin` identity that was created for the CA is visible in the table.
+  - We will register an admin for the "orderer" organization. Click on the <b>Register User</b> button. Give an <b>Enroll ID</b> of `ordereradmin`, and <b>Enroll Secret</b> of `ordereradminpw`. Set the <b>Type</b> for this identity as `client`. We can specify to <b>Use root affiliation</b> or uncheck this field and select from any of the affiliated organizations from the drop-down list. We will leave the <b>Maximum enrollments</b> field blank. Click <b>Next</b>.
   - We will not be adding any attributes to this user. Click <b>Register user</b>.
   - We will repeat the process to create an identity of the peer. Click on the <b>Register User</b> button. Give an <b>Enroll ID</b> of `orderer1`, and <b>Enroll Secret</b> of `orderer1pw`. Set the <b>Type</b> for this identity as `peer`. We can specify to <b>Use root affiliation</b> or uncheck this field and select from any of the affiliated organizations from the drop-down list. Click <b>Next</b>.
   - We will not be adding any attributes to this user. Click <b>Register user</b>.
