@@ -10,7 +10,7 @@ This business network includes:
 **CSPs:** or Communication Service Providers which can act as either the `Home Operator` of the SubscriberSim or the `Roaming Partner` of the SubscriberSim.
 
 <p align="center">
-  <img src="docs/doc_images/bc_roaming_archi.png" alt="Business network">
+  <img src="docs/doc-images/bc_roaming_archi.png" alt="Business network">
 </p>
 
 
@@ -41,7 +41,7 @@ Audience level : Intermediate Developers
 # Architecture flow
 
 <p align="center">
-  <img src="docs/doc_images/arch-diagram.png" alt="Architecture diagram">
+  <img src="docs/doc-images/arch-diagram.png" alt="Architecture diagram">
 </p>
 
 1. The Blockchain Operator clones the GitHub repo to obtain the **Blockchain for Telco Roaming using IBPV2** smart contract.
