@@ -60,7 +60,7 @@ process.on('unhandledRejection', error => {
 
 async function main() {
     if(process.argv.length !== 3){
-        throw new Error('Process argv length is ', process.argv.length, '. It should be 3');
+        throw new Error('Process argv length is ' + process.argv.length + '. It should be 3');
     }
 
     let simPublicKey = process.argv[2];

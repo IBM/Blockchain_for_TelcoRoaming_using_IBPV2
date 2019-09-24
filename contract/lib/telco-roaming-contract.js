@@ -778,9 +778,6 @@ class TelcoRoamingContract extends Contract {
     */
     async queryWithQueryString(ctx, queryString) {
 
-        //console.log('query String');
-        //console.log(JSON.stringify(queryString));
-
         let resultsIterator = await ctx.stub.getQueryResult(queryString);
 
         let allResults = [];
@@ -791,8 +788,6 @@ class TelcoRoamingContract extends Contract {
 
             if (res.value && res.value.value.toString()) {
                 let jsonRes = {};
-
-                console.log(res.value.value.toString('utf8'));
 
                 jsonRes.Key = res.value.key;
 
@@ -806,9 +801,7 @@ class TelcoRoamingContract extends Contract {
                 allResults.push(jsonRes);
             }
             if (res.done) {
-                //console.log('end of data');
                 await resultsIterator.close();
-                //console.info(allResults);
                 return allResults;
             }
         }
@@ -847,6 +840,47 @@ class TelcoRoamingContract extends Contract {
         return simsForCSP;
     }
 
+    async getHistoryForSim(ctx, simPublicKey) {
+        let exists = await this.assetExists(ctx, simPublicKey);
+        let buffer, asset;
+        if(exists){
+            buffer = await ctx.stub.getState(simPublicKey);
+            asset = JSON.parse(buffer.toString());
+        }
+        if (!exists || asset.type !== 'SubscriberSim') {
+            throw new Error(`The sim ${simPublicKey} does not exist`);
+        }
+
+        console.info('- start getHistoryForSim: %s\n', simPublicKey);
+
+        let resultsIterator = await ctx.stub.getHistoryForKey(simPublicKey);
+        let allResults = [];
+
+        let index = 0;
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            let res = await resultsIterator.next();
+
+            if (res.value && res.value.value.toString()) {
+                let jsonRes = {};
+
+                jsonRes.Key = index++;
+
+                try {
+                    jsonRes.Record = JSON.parse(res.value.value.toString('utf8'));
+                } catch (err) {
+                    console.log(err);
+                    jsonRes.Record = res.value.value.toString('utf8');
+                }
+
+                allResults.push(jsonRes);
+            }
+            if (res.done) {
+                await resultsIterator.close();
+                return allResults;
+            }
+        }
+    }
 }
 
 module.exports = TelcoRoamingContract;
