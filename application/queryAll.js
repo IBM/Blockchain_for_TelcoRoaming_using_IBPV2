@@ -5,15 +5,13 @@
 * SPDX-License-Identifier: Apache-2.0
 */
 /*
- * Invoke the telco-roaming-contract to get the history of a SubscriberSim object.
- * node getSimHistory.js <simPublicKey>
- * eg. node getSimHistory.js sim1
+ * Invoke the telco-roaming-contract to get the latest snapshot of all objects in the blockchain.
+ * node queryAll.js
+ * eg. node queryAll.js
  *
  *
- * 1. call getHistoryForSim which returns the log of all changes made to the SubscriberSim object with the given publicKey.
+ * 1. call queryAll which returns the latest snapshot of all objects in the blockchain.
  *
- * Will throw an error if sim does not exist.
- * Otherwise, should successfully complete without errors and return the history for the SubscriberSim.
  */
 
 const fs = require('fs');
@@ -50,11 +48,6 @@ process.on('unhandledRejection', error => {
 });
 
 async function main() {
-    if(process.argv.length !== 3){
-        throw new Error('Process argv length is ' + process.argv.length + '. It should be 3');
-    }
-
-    let simPublicKey = process.argv[2];
 
     // A gateway defines the peers used to access Fabric networks
 
@@ -64,11 +57,11 @@ async function main() {
 
     const contract = network.getContract(smartContractName);
 
-    const simHistory = await contract.evaluateTransaction('getHistoryForSim',simPublicKey);
-    const simHistoryArray = JSON.parse(simHistory);
-    for(let i = 0; i < simHistoryArray.length; i++){
-        console.log('Key: ' + simHistoryArray[i].Key + '\nRecord:');
-        console.log(simHistoryArray[i].Record);
+    const queryResults = await contract.evaluateTransaction('queryAll');
+    const queryResultsArray = JSON.parse(queryResults);
+    for(let i = 0; i < queryResultsArray.length; i++){
+        console.log('Key: ' + queryResultsArray[i].Key + '\nRecord:');
+        console.log(queryResultsArray[i].Record);
         console.log('\n');
     }
 }

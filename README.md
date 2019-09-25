@@ -29,6 +29,18 @@ A fraudulent SubscriberSim (with the same MSISDN as an existing SubscriberSim) i
 A roaming subscriber intiates a call. `callout` function is executed. The smart contract recognizes that the subscriber is potentially reaching the overage threshold. The operator notifies the subscriber about the reaching the overage threshold and specifies the potential tariff changes. The subscriber is asked to accept or deny the new charges, the subscriber's response is recorded in the ledger and future calls (including this one) are either initiated or denied based on whether the subscriber accepted or denied the overage charges. If the roaming subscriber accepted the charges, then all the future calls (including this one) will make use of the overageRate in order to calculate call charges instead of the roamingRate.
 
 
+The following scripts are available in the application folder:
+1) node enrollAdmin.js - Enroll the admin specified in the config.json.
+2) node createCSPAndSim.js - create 2 CSP objects and 2 SubscriberSim objects for demoing the application.
+3) node deleteSubscriberSim.js <simPublicKey> - delete the SubscriberSim object identified by <simPublicKey>.
+4) node deleteCSP.js <name> - delete the CSP object identified by <name>.
+5) node createFraudSim.js - create a SubscriberSim object to demo the fraudulent sim scenario.
+6) node moveSim.js <simPublicKey> <location> - move a SubscriberSim object identified by <simPublicKey> to the location <location>.
+7) node callOut.js <simPublicKey> - perform an outgoing call for the SubscriberSim identified by <simPublicKey>.
+8) node callEnd.js <simPublicKey> - end an ongoing outgoing call for the SubscriberSim identified by <simPublicKey>.
+9) node getSimHistory.js <simPublicKey> - get the ledger history of (list of all updates performed on) the SUbscriberSim identified by <simPublicKey>.
+10) node queryAll.js - get the latest snapshot of all objects (CSPs and SubscriberSims) in the blockchain.
+
 When you have completed this code pattern, you will understand how to:
 
 1. Package a blockchain smart contract using the IBM Blockchain Platform Extension for VS Code.
@@ -484,6 +496,63 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
   Found AuthenticationEvent
   ```
   
+  Two CSPs and two SubscriberSims have now been created. For both the CSPs, the `createCSP` function in the contract was called. Once the two CSPs were created, the two SubscriberSims were created using the `createSubscriberSim` function in the contract. For each of the sims, the `authentication` function of the contract was called next, in order to validate the SubscriberSim objects.
+  
+  Once the sims have been created, the getSimHistory.js script can be used to get the ledger history for that sim. For e.g.
+
+  ```bash
+  node getSimHistory.js sim1
+  ```
+
+  **Output:**
+
+  ```bash
+  Key: 0
+  Record:
+  { publicKey: 'sim1',
+    msisdn: '4691234577',
+    address: 'United States',
+    homeOperatorName: 'CSP_US',
+    roamingPartnerName: '',
+    isRoaming: 'false',
+    location: 'United States',
+    latitude: '40.942746',
+    longitude: '-74.91',
+    roamingRate: '',
+    overageRate: '',
+    callDetails: [],
+    isValid: '',
+    overageThreshold: '2.00',
+    allowOverage: '',
+    overageFlag: 'false',
+    type: 'SubscriberSim' }
+  
+  Key: 1
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'false',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'United States',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: '',
+    roamingRate: '',
+    type: 'SubscriberSim' }
+  
+  ```
+  
+  The `Key` indicates how old a particular sim's Record is. There are 2 records in the history for `sim1` at this point.
+  1) The record with Key = 0 shows the contents of the SubscriberSim object when the sim was first created using the `createSubscriberSim` function of the contract.
+  2) The record with Key = 1 shows the first change made to the existing SubscriberSim record which happened when the `authentication` method of the contract was run. On comparing the two records, we can see that the sim's `isValid` property was set as `Active`.
+  
 2. Move sims to new locations outside their Home Operator's coverage areas
 
   **Move sim1 to European Union**
@@ -492,7 +561,7 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
   node moveSim.js sim1 European\ Union
   ```
   
-  **Output**
+  **Output:**
   
   ```bash
   Sending transaction proposal for moveSim with transaction id 873447b7456e7521b98d691487221d8121634253ad39abeb3a6b82c0b9e56403
@@ -517,13 +586,111 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
   Found updateRate event
   ```
   
+  The output here shows that the `moveSim`, `discovery`, `authentication` and `updateRate` functions of the contract were run for `sim1`.
+  As before, the getSimHistory.js script can be used to get the ledger history for `sim1`.
+  
+  ```bash
+  node getSimHistory.js sim1
+  ```
+  
+  **Output:**
+  
+  ```bash
+  Key: 0
+  Record:
+  { publicKey: 'sim1',
+    msisdn: '4691234577',
+    address: 'United States',
+    homeOperatorName: 'CSP_US',
+    roamingPartnerName: '',
+    isRoaming: 'false',
+    location: 'United States',
+    latitude: '40.942746',
+    longitude: '-74.91',
+    roamingRate: '',
+    overageRate: '',
+    callDetails: [],
+    isValid: '',
+    overageThreshold: '2.00',
+    allowOverage: '',
+    overageFlag: 'false',
+    type: 'SubscriberSim' }
+  
+  Key: 1
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'false',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'United States',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: '',
+    roamingRate: '',
+    type: 'SubscriberSim' }
+  
+  Key: 2
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'false',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: '',
+    roamingRate: '',
+    type: 'SubscriberSim' }
+  
+  Key: 3
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+    
+  ```
+  
+  Two new history records (Key = 2 and Key = 3) for `sim1` can be seen now in the ledger.
+  1) The call to the `moveSim` funtion in the contract results in the changes that are seen in the record with Key = 2. The location has now been updated to `European Union`. Ideally the latitude and longitude should also be updated but the moveSim function does not update these right now. This has been left for the developers to work on. (If a UI is developed using for e.g. [Mapbox GL](https://docs.mapbox.com/mapbox-gl-js/api/) then the latitude and longitude can be obtained from the API and updated in the SubscriberSim object accordingly.)
+  2) The call to the `discovery` function in the contract does not perform any changes to the `sim1` object. It simply identifies that CSP which is responsible for coverage in the area where the sim has moved. For the European Union location, the CSP  responsible is identified as `CSP_EU`.
+  3) The call to the `authentication` function in the contract updates the isValid property of the sim. In case of `sim1`, this call to authentication found that the sim is Active. Since sim1's isValid has already been set to Active, there was no need to update the sim object.
+  4) The call to the `updateRate` function in the contract updates the isRoaming, roamingPartnerName, overageRate and roamingRate properties of the sim object. Since sim1 has successfully been moved to `CSP_EU`'s coverage area, and since `CSP_EU` is not the same as `sim1`'s homeOperator (`CSP_US`), the next history record (Key = 3) shows that isRoaming has been set to `true`, roamingPartnerName is set to `CSP_EU`, and the overageRate and roamingRate values are set as the overageRate and roamingRate values specified in the `CSP_EU` object, which is `0.75` and `1.00` respectively.
+  
   **Move sim2 to United States**
   
   ```bash
   node moveSim.js sim2 United\ States
   ```
   
-  **Output**
+  **Output:**
   
   ```bash
   Sending transaction proposal for moveSim with transaction id 82431f50b5534f51ae8a5d4a7f32709e3ca107c57f57f8eedc1149fcdbe1f627
@@ -547,20 +714,25 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
   Created Promise - updateRate for sim2
   Found updateRate event
   ```
+  
+  As in case of sim1, getSimHistory.js can be called for sim2 to verify the updates to the ledger.
 
 3. Initiate and end calls. Also simulate overage scenario.
+
+  **In a real life scenario, both callOut as well as callEnd functions require the other phone number (Sim) to be specified in addition to the sim making the call.**
+  **Another assumption here is that there can only be a maximum of one ongoing call (the last call that was created using callOut.js) at any point. In a real-life scenario, multiple calls can be ongoing at the same time (by using call holding)**
 
 Run callOut.js for sim1 to initiate a call. Run callEnd.js for sim1 to end the call. Repeat these until the overage limit is reached. Two quick calls should be enough -> callOut, callEnd, callOut, callEnd. Once the overage limit is reached, the next callOut.js will cause a prompt to appear on the terminal which indicates that the sim has reached the overage limit and all future calls (including this one) will be charged at a higher rate. Select "Yes" to accept the charges and the call will be initiated. The user's response of "Yes" will be saved in the ledger (as sim1.allowOverage="true") and future runs of callOut will simply initiate calls with the higher charges.
 We will repeat the same process for sim2, however, once the overage limit is reached and the prompt is displayed, we will select "No" in order to deny the charges. This causes the user's response of "No" to be saved in the ledger as sim2.allowOverage=false, and as a result, this as well as all future calls will not be initiated. As in case of sim1, since the response has been stored in the ledger, the prompt will not be displayed the next time callOut.js is run.
 
+
   **Perform callOut and callEnd on sim1 until overageLimit is reached**
-  
   
   ```bash
   node callOut.js sim1
   ```
   
-  **Output**
+  **Output:**
   
   ```bash
   Sending transaction proposal for verifyUser with transaction id e5544bdc43cf06c731378ac33f27c586a4581628cbb38bb07aa36f3d486286e8
@@ -580,11 +752,138 @@ We will repeat the same process for sim2, however, once the overage limit is rea
   Found CallOutEvent
   ```
   
+  The output here shows that the `verifyUser`, `setOverageFlag`, and `callOut` functions of the contract were run for `sim1`.
+  The getSimHistory.js script can be used to get the ledger history for `sim1`.
+  
+  ```bash
+  node getSimHistory.js sim1
+  ```
+  
+  **Output:**
+  
+  ```bash
+  Key: 0
+  Record:
+  { publicKey: 'sim1',
+    msisdn: '4691234577',
+    address: 'United States',
+    homeOperatorName: 'CSP_US',
+    roamingPartnerName: '',
+    isRoaming: 'false',
+    location: 'United States',
+    latitude: '40.942746',
+    longitude: '-74.91',
+    roamingRate: '',
+    overageRate: '',
+    callDetails: [],
+    isValid: '',
+    overageThreshold: '2.00',
+    allowOverage: '',
+    overageFlag: 'false',
+    type: 'SubscriberSim' }
+  
+  Key: 1
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'false',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'United States',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: '',
+    roamingRate: '',
+    type: 'SubscriberSim' }
+  
+  Key: 2
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'false',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: '',
+    roamingRate: '',
+    type: 'SubscriberSim' }
+  
+  Key: 3
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 4
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callEnd: '',
+         callCharges: '' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+    
+  ```
+  
+  1) The `verifyUser` function in the contract in turn makes the following calls:
+  * `checkIfFraudUser` (which throws an error is the sim's isValid = Fraud
+  * `checkForOverage` (which calculates the sum of all callCharges the sim has incurred so far, and sets the sim's overageFlag to `true` if this number is nearing the overageThreshold value of the sim (i.e. if the sum of callCharges + roamingRate > overageThreshold).
+  In case of `sim1`, verifyUser finds that sim1 has isValid = Active and the sum of callCharges incurred so far is 0 (Since no calls have been made so far). Therefore, no update is made to the sim.
+  2) The `setOverageFlag` function in the contract only makes updates to the sim when the sim has reached the overageThreshold (i.e. the overageFlag was set to true by the `checkForOverage` function) for the first time. At this point, a prompt asks the user to accept or deny the additional charges due to overage. The user's response is then stored as the `allowOverage` flag in the sim.
+  In case of `sim1`, since the overageThreshold has not been reached, the prompt was not displayed and setOverageFlag function did not make changes to the `sim1` object.
+  3) The `callOut` function in the contract adds a new item to the callDetails array in the sim, and sets the callBegin as the current timestamp to indicate the time when the call had begun. 
+  In case of `sim1`, we can see that the record with Key = 4 is added to the history of the sim, wherein an item was added to the callDetails object with the current timestamp as the callBegin value.
+  
+  
+  **End the call**
+  
   ```bash
   node callEnd.js sim1
   ```
   
-  **Output**
+  **Output:**
   
   ```bash
   Sending transaction proposal for callEnd with transaction id d3cfb96e20e6a3a689202bb9169e67e0df65b319c30c2504bf7352139e91cc3e
@@ -599,13 +898,177 @@ We will repeat the same process for sim2, however, once the overage limit is rea
   Found CallPayEvent
   ```
   
+  The output here shows that the `callEnd` and `callPay` functions of the contract were run for `sim1`.
+  Make another call to getSimHistory.js to see the ledger history for `sim1`.
+  
+  ```bash
+  node getSimHistory.js sim1
+  ```
+  
+  **Output:**
+  
+  ```bash
+  Key: 0
+  Record:
+  { publicKey: 'sim1',
+    msisdn: '4691234577',
+    address: 'United States',
+    homeOperatorName: 'CSP_US',
+    roamingPartnerName: '',
+    isRoaming: 'false',
+    location: 'United States',
+    latitude: '40.942746',
+    longitude: '-74.91',
+    roamingRate: '',
+    overageRate: '',
+    callDetails: [],
+    isValid: '',
+    overageThreshold: '2.00',
+    allowOverage: '',
+    overageFlag: 'false',
+    type: 'SubscriberSim' }
+  
+  Key: 1
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'false',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'United States',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: '',
+    roamingRate: '',
+    type: 'SubscriberSim' }
+  
+  Key: 2
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'false',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: '',
+    roamingRate: '',
+    type: 'SubscriberSim' }
+  
+  Key: 3
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 4
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callEnd: '',
+         callCharges: '' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 5
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callCharges: '',
+         callEnd: '2019-09-25T14:35:08.429Z' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 6
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callCharges: '1.50',
+         callEnd: '2019-09-25T14:35:08.429Z' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+    
+  ```
+  
+  1) The `callEnd` function in the contract ends the ongoing call by adding a callEnd timestamp to the callDetails item representing the call. This update to `sim1` can be seen as part of the record with Key = 5.
+  2) The `callPay` function in the contract calculates the callCharges for this call as the product of the time difference between the callEnd and callBegin timestamps and the roamingRate, following which it updates the sim object. The updated callCharges can be seen within the `sim1` record with Key = 6.
+  
   **Perform callOut and callEnd on sim1 after overageLimit is reached**
   
   ```bash
   node callOut.js sim1
   ```
   
-  **Output**
+  **Output:**
   
   ```bash
   Sending transaction proposal for verifyUser with transaction id 8cc7d67a2a861df7165ef6be2b1c70d3ba23b4093a61967d9b472a71f438841b
@@ -626,11 +1089,246 @@ We will repeat the same process for sim2, however, once the overage limit is rea
   Found CallOutEvent
   ```
   
+  Again, as before, the `verifyUser`, `setOverageFlag` and `callOut` functions within the contract are executed.
+  Calling getSimHistoryjs shows us that 3 new updates were made to `sim1`.
+  
+  ```bash
+  node getSimHistory.js sim1
+  ```
+  
+  ```bash
+  Key: 0
+  Record:
+  { publicKey: 'sim1',
+    msisdn: '4691234577',
+    address: 'United States',
+    homeOperatorName: 'CSP_US',
+    roamingPartnerName: '',
+    isRoaming: 'false',
+    location: 'United States',
+    latitude: '40.942746',
+    longitude: '-74.91',
+    roamingRate: '',
+    overageRate: '',
+    callDetails: [],
+    isValid: '',
+    overageThreshold: '2.00',
+    allowOverage: '',
+    overageFlag: 'false',
+    type: 'SubscriberSim' }
+  
+  Key: 1
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'false',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'United States',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: '',
+    roamingRate: '',
+    type: 'SubscriberSim' }
+  
+  Key: 2
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'false',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: '',
+    roamingRate: '',
+    type: 'SubscriberSim' }
+  
+  Key: 3
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 4
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callEnd: '',
+         callCharges: '' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 5
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callCharges: '',
+         callEnd: '2019-09-25T14:35:08.429Z' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 6
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callCharges: '1.50',
+         callEnd: '2019-09-25T14:35:08.429Z' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 7
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callCharges: '1.50',
+         callEnd: '2019-09-25T14:35:08.429Z' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'true',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 8
+  Record:
+  { address: 'United States',
+    allowOverage: 'true',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callCharges: '1.50',
+         callEnd: '2019-09-25T14:35:08.429Z' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'true',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 9
+  Record:
+  { address: 'United States',
+    allowOverage: 'true',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callCharges: '1.50',
+         callEnd: '2019-09-25T14:35:08.429Z' },
+       { callBegin: '2019-09-25T15:15:16.721Z',
+         callEnd: '',
+         callCharges: '' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'true',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+    
+  ```
+
+  1) The `verifyUser` function found that sim1 has isValid = Active and the sum of callCharges incurred so far is 1.50. Since the roamingRate is 0.75, the sum of these is 2.25 which is greater than the overageThresold of 2.00. Thus, the `checkForOverage` function (Which is called by the `verifyUser`) sets the overageFlag to `true` as seen in `sim1`'s history record with Key = 7.
+  2) Since, the overageFlag was set to `true` and the allowOverage flag has not been set, the user gets a prompt to accept or deny the additional charges that will be incurred for all future calls. Since, the user accepted the changes, the `setOverageFlag` function in the contract updates the sim to set the allowOverage flag as `true` as seen in `sim1`'s history record with Key = 8. Now that the allowOverage flag has been set, all future calls (including this one) will be made using the overageRate to calculate the callCharges (instead of the roamingRate).
+  3) As before, the `callOut` function in the contract adds a new item to the callDetails array in the sim, and sets the callBegin as the current timestamp to indicate the time when the call had begun as seen in the record with Key = 9.
+  
   ```bash
   node callEnd.js sim1
   ```
   
-  **Output**
+  **Output:**
   
   ```bash
   Sending transaction proposal for callEnd with transaction id 9ce6f43d937e5c28e30173e2b42734a30bd1492ff9143f7bc6d902aab9e5d8a5
@@ -644,14 +1342,300 @@ We will repeat the same process for sim2, however, once the overage limit is rea
   Created Promise - callPay for sim1
   Found CallPayEvent
   ```
+  As before, callEnd.js makes calls to `callEnd` and `callPay` functions in the contract, each of which updates the sim object, resulting in 2 new records added to sim1's history:
+  
+  ```bash
+  node getSimHistory.js sim1
+  ```
+  
+  ```bash
+  Key: 0
+  Record:
+  { publicKey: 'sim1',
+    msisdn: '4691234577',
+    address: 'United States',
+    homeOperatorName: 'CSP_US',
+    roamingPartnerName: '',
+    isRoaming: 'false',
+    location: 'United States',
+    latitude: '40.942746',
+    longitude: '-74.91',
+    roamingRate: '',
+    overageRate: '',
+    callDetails: [],
+    isValid: '',
+    overageThreshold: '2.00',
+    allowOverage: '',
+    overageFlag: 'false',
+    type: 'SubscriberSim' }
+  
+  Key: 1
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'false',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'United States',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: '',
+    roamingRate: '',
+    type: 'SubscriberSim' }
+  
+  Key: 2
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'false',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: '',
+    roamingRate: '',
+    type: 'SubscriberSim' }
+  
+  Key: 3
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 4
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callEnd: '',
+         callCharges: '' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 5
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callCharges: '',
+         callEnd: '2019-09-25T14:35:08.429Z' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 6
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callCharges: '1.50',
+         callEnd: '2019-09-25T14:35:08.429Z' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 7
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callCharges: '1.50',
+         callEnd: '2019-09-25T14:35:08.429Z' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'true',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 8
+  Record:
+  { address: 'United States',
+    allowOverage: 'true',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callCharges: '1.50',
+         callEnd: '2019-09-25T14:35:08.429Z' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'true',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 9
+  Record:
+  { address: 'United States',
+    allowOverage: 'true',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callCharges: '1.50',
+         callEnd: '2019-09-25T14:35:08.429Z' },
+       { callBegin: '2019-09-25T15:15:16.721Z',
+         callEnd: '',
+         callCharges: '' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'true',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 10
+  Record:
+  { address: 'United States',
+    allowOverage: 'true',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callCharges: '1.50',
+         callEnd: '2019-09-25T14:35:08.429Z' },
+       { callBegin: '2019-09-25T15:15:16.721Z',
+         callCharges: '',
+         callEnd: '2019-09-25T15:15:32.280Z' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'true',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+  
+  Key: 11
+  Record:
+  { address: 'United States',
+    allowOverage: 'true',
+    callDetails: 
+     [ { callBegin: '2019-09-25T14:33:37.470Z',
+         callCharges: '1.50',
+         callEnd: '2019-09-25T14:35:08.429Z' },
+       { callBegin: '2019-09-25T15:15:16.721Z',
+         callCharges: '1.00',
+         callEnd: '2019-09-25T15:15:32.280Z' } ],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'true',
+    isValid: 'Active',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'true',
+    overageRate: '1.00',
+    overageThreshold: '2.00',
+    publicKey: 'sim1',
+    roamingPartnerName: 'CSP_EU',
+    roamingRate: '0.75',
+    type: 'SubscriberSim' }
+    
+  ```
+  
+  1) The `callEnd` function of the contract adds the callEnd timestamp to the callDetails item representing the ongoing call as seen in `sim1`'s history record with Key = 10.
+  2) The `callPay` function calculates the callCharges as the product of the time difference between the callEnd and callBegin timestamps and the overageRate (since overageFlag is true, overageRate will be used for calculating callCharges instead of the roamingRate). The callCharges are then added to the callDetails item as seen in the record with Key = 11.
   
   **Perform callOut and callEnd on sim2 until overageLimit is reached**
+  
+  Actions similar to the ones performed on sim1 are executed on `sim2` to perform calls and end them. The sim's history should show entries similar to the ones for sim1 (until the overageThreshold is reached).
   
   ```bash
   node callOut.js sim2
   ```
   
-  **Output**
+  **Output:**
   
   ```bash
   Sending transaction proposal for verifyUser with transaction id e4648aed8e5a0e11820b3b5332cefc41e112cc043b3bfb51bd258ff2c461dbe9
@@ -675,7 +1659,7 @@ We will repeat the same process for sim2, however, once the overage limit is rea
   node callEnd.js sim2
   ```
 
-  **Output**
+  **Output:**
   
   ```bash
   Sending transaction proposal for callEnd with transaction id b2a03c620d5a8baa5bf633a1f475a1e445a8acf4122b1b8b6c2d9e538362be63
@@ -692,11 +1676,13 @@ We will repeat the same process for sim2, however, once the overage limit is rea
   
   **Perform callOut on sim2 after overageLimit is reached**
   
+  Once the overageThreshold is reached for `sim2` and the user is shown a prompt to accept or deny the additional charges, the user denies them, and as a result, the allowOverage flag gets set to `false`. This results in an error to be thrown, which indicates that no further calls can be made as the user has denied the charges. As a result, the `callOut` function of the contract never runs to completion and therefore, doesn't make updates to the sim object.
+  
   ```bash
   node callOut.js sim2
   ```
   
-  **Output**
+  **Output:**
   
   ```bash
   Sending transaction proposal for verifyUser with transaction id ad4975ea88faf0e1ebe3482a1f0a0a215c62baeed978e938383269bf3f2a8c85
@@ -719,7 +1705,7 @@ We will repeat the same process for sim2, however, once the overage limit is rea
   node callOut.js sim2
   ```
   
-  **Output**
+  **Output:**
   
   ```bash
   Sending transaction proposal for verifyUser with transaction id ceb8b68d5966f4158c1f39b07536e3a62b82332f1472eac18ebbdb52ec72b22e
@@ -745,7 +1731,7 @@ We will repeat the same process for sim2, however, once the overage limit is rea
   node createFraudUser.js
   ```
   
-  **Output**
+  **Output:**
   
   ```bash
   Sending transaction proposal for createSubscriberSim with transaction id 18a2b40e4445f12d5b1b77ff92d3ad3b166c3ca9e0679d3d9206e1968e27c27c
@@ -766,7 +1752,7 @@ We will repeat the same process for sim2, however, once the overage limit is rea
   node moveSim.js sim3 European\ Union
   ```
   
-  **Output**
+  **Output:**
   
   ```bash
   Sending transaction proposal for moveSim with transaction id 1fde8df1d120c9830f1f90da2a35772e30659fa91beb90657865530a55df4d6f
@@ -795,7 +1781,7 @@ We will repeat the same process for sim2, however, once the overage limit is rea
   node callOut.js sim3
   ```
 
-  **Output**
+  **Output:**
   
   ```bash
   Sending transaction proposal for verifyUser with transaction id bb93d56cad036df8155f040c5c0791b7f08b3c68bf0ad782977369d420f23392
@@ -803,6 +1789,80 @@ We will repeat the same process for sim2, however, once the overage limit is rea
   An unhandled rejection was found -  Endorsement has failed
   ```
   
+  If we run getSimHistory.js for sim3, we can see the following records:
+  Key = 0: As part of the call to the createFraudUser.js script, `sim3` was created.
+  Key = 1: As part of the call to the createFraudUser.js script, `sim3` was authenticated and identified as a `Fraud`. The isValid property was updated accordingly.
+  Key = 2: As part of the call to the moveSim.js script, `sim3`'s location was updated to `European Union`. However, when `authentication` was run, the sim was identified as a `Fraud` and further updates to roamingRate, overageRate, isRoaming and roamingPartnerName were not performed.
+  As part of the call to the callOut.js, `verifyUser` function is called, which on identifuing that the user is `Fraud`, throws an error and prevents any updates to the sim object.
+  
+  ```bash
+  node getSimHistory.js sim3
+  ```
+  
+  **Output:**
+  
+  ```
+  Key: 0
+  Record:
+  { publicKey: 'sim3',
+    msisdn: '4691234577',
+    address: 'United States',
+    homeOperatorName: 'CSP_US',
+    roamingPartnerName: '',
+    isRoaming: 'false',
+    location: 'United States',
+    latitude: '40.942746',
+    longitude: '-74.91',
+    roamingRate: '',
+    overageRate: '',
+    callDetails: [],
+    isValid: '',
+    overageThreshold: '2.00',
+    allowOverage: '',
+    overageFlag: 'false',
+    type: 'SubscriberSim' }
+
+  Key: 1
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'false',
+    isValid: 'Fraud',
+    latitude: '40.942746',
+    location: 'United States',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '',
+    overageThreshold: '2.00',
+    publicKey: 'sim3',
+    roamingPartnerName: '',
+    roamingRate: '',
+    type: 'SubscriberSim' }
+
+  Key: 2
+  Record:
+  { address: 'United States',
+    allowOverage: '',
+    callDetails: [],
+    homeOperatorName: 'CSP_US',
+    isRoaming: 'false',
+    isValid: 'Fraud',
+    latitude: '40.942746',
+    location: 'European Union',
+    longitude: '-74.91',
+    msisdn: '4691234577',
+    overageFlag: 'false',
+    overageRate: '',
+    overageThreshold: '2.00',
+    publicKey: 'sim3',
+    roamingPartnerName: '',
+    roamingRate: '',
+    type: 'SubscriberSim' }
+  
+  ```
   
 # Links
 * [Hyperledger Fabric Docs](http://hyperledger-fabric.readthedocs.io/en/latest/)

@@ -228,7 +228,12 @@ class TelcoRoamingContract extends Contract {
      */
     async deleteCSP(ctx, name) {
         let exists = await this.assetExists(ctx, name);
-        if (!exists) {
+        let buffer, asset;
+        if(exists){
+            buffer = await ctx.stub.getState(name);
+            asset = JSON.parse(buffer.toString());
+        }
+        if (!exists || asset.type !== 'CSP') {
             throw new Error(`The CSP ${name} does not exist`);
         }
         //if CSP exists, verify that no subscriber sims are associated with it (HomeOperator or RoamingPartner) before deleting the CSP
@@ -237,6 +242,13 @@ class TelcoRoamingContract extends Contract {
             throw new Error(`The CSP ${name} can not be deleted as the following sims are currently in its network: ${queryResults}`);
         }
         await ctx.stub.deleteState(name);
+
+        // define and set deleteCSPEvent
+        let deleteCSPEvent = {
+            type: 'Delete CSP',
+            name: name
+        };
+        ctx.stub.setEvent('DeleteCSPEvent-'+name, Buffer.from(JSON.stringify(deleteCSPEvent)));
     }
 
     /**
@@ -251,10 +263,22 @@ class TelcoRoamingContract extends Contract {
      */
     async deleteSubscriberSim(ctx, publicKey) {
         let exists = await this.assetExists(ctx, publicKey);
-        if (!exists) {
+        let buffer, asset;
+        if(exists){
+            buffer = await ctx.stub.getState(publicKey);
+            asset = JSON.parse(buffer.toString());
+        }
+        if (!exists || asset.type !== 'SubscriberSim') {
             throw new Error(`The subscriber sim ${publicKey} does not exist`);
         }
         await ctx.stub.deleteState(publicKey);
+
+        // define and set deleteSimEvent
+        let deleteSimEvent = {
+            type: 'Delete Sim',
+            simPublicKey: publicKey
+        };
+        ctx.stub.setEvent('DeleteSimEvent-'+publicKey, Buffer.from(JSON.stringify(deleteSimEvent)));
     }
 
     /**
@@ -401,13 +425,17 @@ class TelcoRoamingContract extends Contract {
             }
         };
         let queryResults = await this.queryWithQueryString(ctx, JSON.stringify(queryString));
+        let isValid;
         if (queryResults.length > 0){
-            currentSim.isValid = 'Fraud';
+            isValid = 'Fraud';
         }
         else{
-            currentSim.isValid = 'Active';
+            isValid = 'Active';
         }
-        await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(currentSim)));
+        if(currentSim.isValid !== isValid){
+            currentSim.isValid = isValid;
+            await ctx.stub.putState(simPublicKey, Buffer.from(JSON.stringify(currentSim)));
+        }
 
         //create authenticationEvent
         let authenticationEvent = {
