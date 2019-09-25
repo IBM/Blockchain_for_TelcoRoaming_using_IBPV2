@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/sandhya-nayak/Blockchain_for_TelcoRoaming_using_IBPV2.svg?branch=master)](https://travis-ci.org/sandhya-nayak/Blockchain_for_TelcoRoaming_using_IBPV2)
+[![Build Status](https://travis-ci.org/IBM/Blockchain_for_TelcoRoaming_using_IBPV2.svg?branch=master)](https://travis-ci.org/IBM/Blockchain_for_TelcoRoaming_using_IBPV2)
 
 # Blockchain_for_TelcoRoaming_using_IBPV2
 In this code pattern, we will be deploying a telco roaming smart contract on a Hyperledger Fabric Network created on IBM Blockchain Platform. The smart contract governs the transactions between CSPs acting as home operators and roaming partners to track the activities of mobile users on the network enabling the direct exchange of information with transactions that are immutable and executed based on a consensus model using smart contract rules.
