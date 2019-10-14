@@ -32,13 +32,13 @@ A roaming subscriber intiates a call. `callout` function is executed. The smart 
 The following scripts are available in the application folder:
 1) node enrollAdmin.js - Enroll the admin specified in the config.json.
 2) node createCSPAndSim.js - create 2 CSP objects and 2 SubscriberSim objects for demoing the application.
-3) node deleteSubscriberSim.js <simPublicKey> - delete the SubscriberSim object identified by <simPublicKey>.
-4) node deleteCSP.js <name> - delete the CSP object identified by <name>.
+3) node deleteSubscriberSim.js `<simPublicKey>` - delete the SubscriberSim object identified by `<simPublicKey>`.
+4) node deleteCSP.js `<name>` - delete the CSP object identified by `<name>`.
 5) node createFraudSim.js - create a SubscriberSim object to demo the fraudulent sim scenario.
-6) node moveSim.js <simPublicKey> <location> - move a SubscriberSim object identified by <simPublicKey> to the location <location>.
-7) node callOut.js <simPublicKey> - perform an outgoing call for the SubscriberSim identified by <simPublicKey>.
-8) node callEnd.js <simPublicKey> - end an ongoing outgoing call for the SubscriberSim identified by <simPublicKey>.
-9) node getSimHistory.js <simPublicKey> - get the ledger history of (list of all updates performed on) the SUbscriberSim identified by <simPublicKey>.
+6) node moveSim.js `<simPublicKey>` `<location>` - move a SubscriberSim object identified by `<simPublicKey>` to the location `<location>`.
+7) node callOut.js `<simPublicKey>` - perform an outgoing call for the SubscriberSim identified by `<simPublicKey>`.
+8) node callEnd.js `<simPublicKey>` - end an ongoing outgoing call for the SubscriberSim identified by `<simPublicKey>`.
+9) node getSimHistory.js `<simPublicKey>` - get the ledger history of (list of all updates performed on) the SubscriberSim identified by `<simPublicKey>`.
 10) node queryAll.js - get the latest snapshot of all objects (CSPs and SubscriberSims) in the blockchain.
 
 When you have completed this code pattern, you will understand how to:
