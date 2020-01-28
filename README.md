@@ -26,7 +26,7 @@ Once the SubscriberSim has been authorized, it can make use of the Roaming Partn
 A fraudulent SubscriberSim (with the same MSISDN as an existing SubscriberSim) is added. `authentication` function identifies the user as fraudulent and marks the SubscriberSim with isValid = Fraud in the ledger. This prevents the fraudulent SubscriberSim from initiating any calls.
 
 4. Overage Management:<br/>
-A roaming subscriber intiates a call. `callout` function is executed. The smart contract recognizes that the subscriber is potentially reaching the overage threshold. The operator notifies the subscriber about the reaching the overage threshold and specifies the potential tariff changes. The subscriber is asked to accept or deny the new charges, the subscriber's response is recorded in the ledger and future calls (including this one) are either initiated or denied based on whether the subscriber accepted or denied the overage charges. If the roaming subscriber accepted the charges, then all the future calls (including this one) will make use of the overageRate in order to calculate call charges instead of the roamingRate.
+A roaming subscriber initiates a call. `callout` function is executed. The smart contract recognizes that the subscriber is potentially reaching the overage threshold. The operator notifies the subscriber about the reaching the overage threshold and specifies the potential tariff changes. The subscriber is asked to accept or deny the new charges, the subscriber's response is recorded in the ledger and future calls (including this one) are either initiated or denied based on whether the subscriber accepted or denied the overage charges. If the roaming subscriber accepted the charges, then all the future calls (including this one) will make use of the overageRate in order to calculate call charges instead of the roamingRate.
 
 
 The following scripts are available in the application folder:
@@ -79,8 +79,8 @@ Audience level : Intermediate Developers
 
 * [IBM Cloud account](https://cloud.ibm.com/registration/?target=%2Fdashboard%2Fapps)
 * [Node v8.x or greater and npm v5.x or greater](https://nodejs.org/en/download/)
-* [VSCode version 1.26 or greater](https://code.visualstudio.com)
-* [IBM Blockchain Platform Extension for VSCode](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform)
+* [VSCode version 1.38 or greater](https://code.visualstudio.com)
+* [IBM Blockchain Platform Extension for VSCode version 1.0.18](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform)
 
 
 # Running the application
@@ -113,10 +113,10 @@ We will use the IBM Blockchain Platform extension on VS Code to package the smar
 * Open Visual Studio code and open the `contract` folder from `Blockchain_for_TelcoRoaming_using_IBPV2` repository that was cloned earlier. 
    **It is important that you are opening the `contract` folder and not the entire `Blockchain_for_TelcoRoaming_using_IBPV2` directory; otherwise you will see an error that states that it doesn't understand what programming language you are using.**
 
-* Press the `F1` key to see the different VS code options. Choose `IBM Blockchain Platform: Package a Smart Contract Project`.
+* Press the `F1` key to see the different VS code options. Choose `IBM Blockchain Platform: Package Open Project`.
 
 <p align="center">
-  <img src="docs/doc-images/vs-code-options.png">
+  <img src="docs/doc-images/package-vs-code.png">
 </p>
 
 * Click the `IBM Blockchain Platform` extension button on the left. This will show the packaged contracts on top and the blockchain connections on the bottom.
@@ -166,7 +166,7 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
 #### Create your peer organization CA
   - Navigate to the <b>Nodes</b> tab in the left navigation and click <b>Add Certificate Authority</b>.
   - Click <b>Create an IBM Cloud Certificate Authority</b> and <b>Next</b>.
-  - Give it a <b>CA display name</b> of `Org1 CA` and click <b>Next</b>.
+  - Give it a <b>CA display name</b> of `Org1 CA`.
   - Specify an <b>CA Administrator Enroll ID</b> of `admin` and <b>CA Administrator Enroll Secret</b> of `adminpw`, then click <b>Next</b>.
   - Review the summary and click <b>Add Certificate Authority</b>.
 
@@ -180,7 +180,7 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
   - In the Nodes tab, select the <b>Org1 CA</b> once it is running (indicated by the green box in the tile).
   - Click <b>Associate identity</b> on the CA overview panel.
   - On the side panel, select <b>Enroll ID</b>. 
-  - Provide an <b>Enroll ID</b> of `admin` and an <b>Enroll secret</b> of `adminpw`. Use the default value of `Org1 CA Identity` for the <b>Identity display name</b>.
+  - Provide an <b>Enroll ID</b> of `admin` and an <b>Enroll secret</b> of `adminpw`. Use the default value of `Org1 CA Admin` for the <b>Identity display name</b>.
   - Click <b>Associate identity</b> to add the identity into your wallet and associate the admin identity with the <b>Org1 CA</b>.
 
 <br>
@@ -190,7 +190,6 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
 <br>
 
 #### Use peer organization CA to register the peer and org1 admin identities
-  - Select the <b>Org1 CA</b> Certificate Authority and ensure the `admin` identity that was created for the CA is visible in the table.
   - We will register an admin for our organization "org1". Click on the <b>Register User</b> button. Give an <b>Enroll ID</b> of `org1admin`, and <b>Enroll Secret</b> of `org1adminpw`. Set the <b>Type</b> for this identity as `client`. We can specify to <b>Use root affiliation</b> or uncheck this field and select from any of the affiliated organizations from the drop-down list. We will leave the <b>Maximum enrollments</b> field blank. Click <b>Next</b>.
   - We will not be adding any attributes to this user. Click <b>Register user</b>.
   - We will repeat the process to create an identity of the peer. Click on the <b>Register User</b> button. Give an <b>Enroll ID</b> of `peer1`, and <b>Enroll Secret</b> of `peer1pw`. Set the <b>Type</b> for this identity as `peer`. We can specify to <b>Use root affiliation</b> or uncheck this field and select from any of the affiliated organizations from the drop-down list. Click <b>Next</b>.
@@ -221,7 +220,7 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
   - Navigate to the <b>Nodes</b> tab in the left navigation and click <b>Add peer</b>.
   - Click <b>Create an IBM Cloud peer</b> and then click <b>Next</b>.
   - Give the <b>Peer display name</b> as `Peer Org1` and click <b>Next</b>.
-  - On the next screen, select `Org1 CA` as the <b>Certificate Authority</b>. Then, give the <b>Peer enroll ID</b> and <b>Peer enroll secret</b> for the peer identity that you created for your peer, that is, `peer1`, and `peer1pw`. Select the <b>Organization MSP</b> as `Org1MSP`, from the drop-down list and click <b>Next</b>.
+  - On the next screen, select `Org1 CA` as the <b>Certificate Authority</b>. Then, give the <b>Peer enroll ID</b> and <b>Peer enroll secret</b> for the peer identity that you created for your peer, that is, `peer1`, and `peer1pw`. Select the <b>Organization MSP</b> as `Org1MSP`, from the drop-down list. Leave the TLS CSR hostname blank and click <b>Next</b>.
   - Give the <b>TLS CA enroll ID</b> as `admin`, and <b>TLS CA enroll secret</b> as `adminpw`; these same values were provided as the Enroll ID and Enroll secret when we created the CA. Leave the <b>TLS CSR hostname</b> blank. Click <b>Next</b>.
   - The next step is to Associate an identity with this peer to make it the admin of your peer. Select your peer admin identity `Org1 Admin` and click <b>Next</b>.
   - Review the summary and click <b>Add peer</b>.
@@ -236,7 +235,7 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
 #### Create your orderer organization CA
   - Navigate to the <b>Nodes</b> tab in the left navigation and click <b>Add Certificate Authority</b>.
   - Click <b>Create an IBM Cloud Certificate Authority</b> and <b>Next</b>.
-  - Give it a <b>CA display name</b> of `Orderer CA` and click <b>Next</b>.
+  - Give it a <b>CA display name</b> of `Orderer CA`.
   - Specify an <b>CA Administrator Enroll ID</b> of `admin` and <b>CA Administrator Enroll Secret</b> of `adminpw`, then click <b>Next</b>.
   - Review the summary and click <b>Add Certificate Authority</b>.
 
@@ -250,7 +249,7 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
   - In the Nodes tab, select the <b>Orderer CA</b> once it is running (indicated by the green box in the tile).
   - Click <b>Associate identity</b> on the CA overview panel.
   - On the side panel, select <b>Enroll ID</b>. 
-  - Provide an <b>Enroll ID</b> of `admin` and an <b>Enroll secret</b> of `adminpw`. Use the default value of `Orderer CA Identity` for the <b>Identity display name</b>.
+  - Provide an <b>Enroll ID</b> of `admin` and an <b>Enroll secret</b> of `adminpw`. Use the default value of `Orderer CA Admin` for the <b>Identity display name</b>.
   - Click <b>Associate identity</b> to add the identity into your wallet and associate the admin identity with the <b>Orderer CA</b>.
 
 <br>
@@ -260,7 +259,6 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
 <br>
 
 #### Use orderer organization CA to register orderer and orderer admin identities
-  - Select the <b>Orderer CA</b> Certificate Authority and ensure the `admin` identity that was created for the CA is visible in the table.
   - We will register an admin for the "orderer" organization. Click on the <b>Register User</b> button. Give an <b>Enroll ID</b> of `ordereradmin`, and <b>Enroll Secret</b> of `ordereradminpw`. Set the <b>Type</b> for this identity as `client`. We can specify to <b>Use root affiliation</b> or uncheck this field and select from any of the affiliated organizations from the drop-down list. We will leave the <b>Maximum enrollments</b> field blank. Click <b>Next</b>.
   - We will not be adding any attributes to this user. Click <b>Register user</b>.
   - We will repeat the process to create an identity of the peer. Click on the <b>Register User</b> button. Give an <b>Enroll ID</b> of `orderer1`, and <b>Enroll Secret</b> of `orderer1pw`. Set the <b>Type</b> for this identity as `peer`. We can specify to <b>Use root affiliation</b> or uncheck this field and select from any of the affiliated organizations from the drop-down list. Click <b>Next</b>.
@@ -292,8 +290,7 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
   - Navigate to the <b>Nodes</b> tab in the left navigation and click <b>Add ordering service</b>.
   - Click <b>Create an IBM Cloud Ordering service</b> and then click <b>Next</b>.
   - Give the <b>Ordering service display name</b> as `Orderer` and click <b>Next</b>.
-  - On the next screen, select `Orderer CA` as the <b>Certificate Authority</b>. Then, give the <b>Ordering service enroll ID</b> and <b>Ordering service enroll secret</b> for the peer identity that you created for your orderer, that is, `orderer1`, and `orderer1pw`. Select the <b>Organization MSP</b> as `OrdererMSP`, from the drop-down list and click <b>Next</b>.
-  - Give the <b>TLS CA enroll ID</b> as `admin`, and <b>TLS CA enroll secret</b> as `adminpw`; these same values were provided as the Enroll ID and Enroll secret when we created the CA. Leave the <b>TLS CSR hostname</b> blank. Click <b>Next</b>.
+  - On the next screen, select `Orderer CA` as the <b>Certificate Authority</b>. Then, give the <b>Ordering service enroll ID</b> and <b>Ordering service enroll secret</b> for the peer identity that you created for your orderer, that is, `orderer1`, and `orderer1pw`. Select the <b>Organization MSP</b> as `OrdererMSP`, from the drop-down list. Leave the <b>TLS CSR hostname</b> blank and click <b>Next</b>.
   - The next step is to Associate an identity with this peer to make it the admin of your peer. Select your peer admin identity `Orderer Admin` and click <b>Next</b>.
   - Review the summary and click <b>Add ordering service</b>.
 
@@ -305,7 +302,7 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
 
 
 #### Add organization as Consortium Member on the orderer to transact
-  - Navigate to the <b>Nodes</b> tab, and click on the <b>Orderer</b> that we created.
+  - Navigate to the <b>Nodes</b> tab, and click on the <b>Orderer</b> that we created once it is running (indicated by the green box in the tile).
   - Under <b>Consortium Members</b>, click <b>Add organization</b>.
   - From the drop-down list, select `Org1MSP`, as this is the MSP that represents the peer's organization "Org1".
   - Click <b>Add organization</b>.
@@ -366,7 +363,7 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
   - Select the organization members to be included in the endorsement policy. In our case, we need to select `Org1MSP`. Click <b>Next</b>.
   - We can skip the <b>Setup private data collection</b> step and simply click <b>Next</b>.
   - Leave the <b>Function name</b> and <b>Arguments</b> blank.
-  - Click <b>Instantiate</b>.
+  - Click <b>Instantiate Smart Contract</b>.
 
 <br>
 <p align="center">
@@ -380,7 +377,7 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
   - Scroll down to the <b>Instantiated smart contracts</b> section and find the "telcoroaming" contract in the list. Click on `Connect with SDK` from the overflow menu on the right side of the row.
   - From the dropdown for <b>MSP for connection</b> choose `Org1MSP`.
   - From the dropdown for <b>Certificate Authority</b> choose `Org1 CA`.
-  - Download the connection profile by scrolling down and clicking <b>Download Connection Profile</b>. This will download the connection json which we will use to establish a connection between the Node.js web application and the Blockchain Network.
+  - Download the connection profile by scrolling down and clicking <b>Download Connection Profile</b>. This will download the connection json which we will use to establish a connection between the Node.js web application and the Blockchain Network.  Download the connection profile you downloaded into the [fabric folder](application/fabric).
   - You can click <b>Close</b> once the download completes.
 
 <br>
@@ -404,8 +401,8 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
 
 
 #### Update application connection profile
-  - Copy the connection profile you downloaded into the [fabric folder](web-app/controller/restapi/features/fabric).
-  - Update the [config.json](web-app/controller/restapi/features/fabric/config.json) file with:
+  - Copy the connection profile you downloaded into the [fabric folder](application/fabric).
+  - Update the [config.json](application/fabric/config.json) file with:
     - The connection json file name you downloaded.
     - The <b>enroll id</b> and <b>enroll secret</b> for your app admin, which we earlier provided as `app-admin` and `app-adminpw` respectively.
     - The orgMSP ID, which we provided as `Org1MSP`.
@@ -679,7 +676,7 @@ We will build a network as provided by the IBM Blockchain Platform [documentatio
   ```
   
   Two new history records (Key = 2 and Key = 3) for `sim1` can be seen now in the ledger.
-  1) The call to the `moveSim` funtion in the contract results in the changes that are seen in the record with Key = 2. The location has now been updated to `European Union`. Ideally the latitude and longitude should also be updated but the moveSim function does not update these right now. This has been left for the developers to work on. (If a UI is developed using for e.g. [Mapbox GL](https://docs.mapbox.com/mapbox-gl-js/api/) then the latitude and longitude can be obtained from the API and updated in the SubscriberSim object accordingly.)
+  1) The call to the `moveSim` function in the contract results in the changes that are seen in the record with Key = 2. The location has now been updated to `European Union`. Ideally the latitude and longitude should also be updated but the moveSim function does not update these right now. This has been left for the developers to work on. (If a UI is developed using for e.g. [Mapbox GL](https://docs.mapbox.com/mapbox-gl-js/api/) then the latitude and longitude can be obtained from the API and updated in the SubscriberSim object accordingly.)
   2) The call to the `discovery` function in the contract does not perform any changes to the `sim1` object. It simply identifies that CSP which is responsible for coverage in the area where the sim has moved. For the European Union location, the CSP  responsible is identified as `CSP_EU`.
   3) The call to the `authentication` function in the contract updates the isValid property of the sim. In case of `sim1`, this call to authentication found that the sim is Active. Since sim1's isValid has already been set to Active, there was no need to update the sim object.
   4) The call to the `updateRate` function in the contract updates the isRoaming, roamingPartnerName, overageRate and roamingRate properties of the sim object. Since sim1 has successfully been moved to `CSP_EU`'s coverage area, and since `CSP_EU` is not the same as `sim1`'s homeOperator (`CSP_US`), the next history record (Key = 3) shows that isRoaming has been set to `true`, roamingPartnerName is set to `CSP_EU`, and the overageRate and roamingRate values are set as the overageRate and roamingRate values specified in the `CSP_EU` object, which is `0.75` and `1.00` respectively.

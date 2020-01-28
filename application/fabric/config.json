@@ -5,8 +5,8 @@
     "appAdmin": "app-admin",
     "appAdminSecret": "app-adminpw",
     "orgMSPID": "Org1MSP",
-    "caName": "173.193.82.121:31483",
-    "peerName": "173.193.82.121:30162",
-    "ordererName": "173.193.82.121:31647",
+    "caName": "50.23.5.248:31129",
+    "peerName": "50.23.5.248:31443",
+    "ordererName": "50.23.5.248:30281",
     "gatewayDiscovery": { "enabled": true, "asLocalhost": false }
  }
